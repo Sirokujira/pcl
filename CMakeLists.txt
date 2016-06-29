@@ -380,13 +380,13 @@ endif(WITH_VTK AND NOT ANDROID)
 
 
 #Find PCAP
-option(WITH_PCAP "pcap file capabilities in Velodyne HDL driver" TRUE)
+option(WITH_PCAP "pcap file capabilities in Velodyne HDL driver" FALSE)
 if(WITH_PCAP)
   find_package(Pcap)
 endif(WITH_PCAP)
 
 # OpenGL and GLUT
-include("${PCL_SOURCE_DIR}/cmake/pcl_find_gl.cmake")
+# include("${PCL_SOURCE_DIR}/cmake/pcl_find_gl.cmake")
 
 ### ---[ Create the config.h file
 set(pcl_config_h_in "${CMAKE_CURRENT_SOURCE_DIR}/pcl_config.h.in")

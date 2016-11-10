@@ -31,7 +31,7 @@ option(PCL_NO_PRECOMPILE "Do not precompile PCL code for any point types at all.
 mark_as_advanced(PCL_NO_PRECOMPILE)
 
 # Enable or Disable the check for SSE optimizations
-option(PCL_ENABLE_SSE "Enable or Disable SSE optimizations." ON)
+option(PCL_ENABLE_SSE "Enable or Disable SSE optimizations." OFF)
 mark_as_advanced(PCL_ENABLE_SSE)
 
 # Display timing information for each compiler instance on screen

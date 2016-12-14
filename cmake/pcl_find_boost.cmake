@@ -23,7 +23,7 @@ endif(${CMAKE_VERSION} VERSION_LESS 2.8.5)
 set(Boost_NO_BOOST_CMAKE ON)
 
 # Optional boost modules
-find_package(Boost 1.60.0 QUIET COMPONENTS serialization mpi)
+find_package(Boost 1.47.0 QUIET COMPONENTS serialization mpi)
 if(Boost_SERIALIZATION_FOUND)
   set(BOOST_SERIALIZATION_FOUND TRUE)
 endif(Boost_SERIALIZATION_FOUND)
@@ -31,7 +31,7 @@ endif(Boost_SERIALIZATION_FOUND)
 # Required boost modules
 set(BOOST_REQUIRED_MODULES system filesystem thread date_time iostreams chrono)
 
-find_package(Boost 1.60.0 REQUIRED COMPONENTS ${BOOST_REQUIRED_MODULES})
+find_package(Boost 1.47.0 REQUIRED COMPONENTS ${BOOST_REQUIRED_MODULES})
 
 if(Boost_FOUND)
   set(BOOST_FOUND TRUE)

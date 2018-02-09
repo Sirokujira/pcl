@@ -205,6 +205,7 @@ namespace pcl
         virtual ~DataContainerInterface () {}
         virtual double getCorrespondenceScore (int index) = 0;
         virtual double getCorrespondenceScore (const pcl::Correspondence &) = 0;
+        virtual double getCorrespondenceScoreFromNormals (const pcl::Correspondence &) = 0;
      };
 
     /** @b DataContainer is a container for the input and target point clouds and implements the interface 
@@ -244,19 +245,6 @@ namespace pcl
       
         /** \brief Empty destructor */
         virtual ~DataContainer () {}
-
-        /** \brief Provide a source point cloud dataset (must contain XYZ
-          * data!), used to compute the correspondence distance.  
-          * \param[in] cloud a cloud containing XYZ data
-          */
-        PCL_DEPRECATED ("[pcl::registration::DataContainer::setInputCloud] setInputCloud is deprecated. Please use setInputSource instead.")
-        void
-        setInputCloud (const PointCloudConstPtr &cloud);
-
-        /** \brief Get a pointer to the input point cloud dataset target. */
-        PCL_DEPRECATED ("[pcl::registration::DataContainer::getInputCloud] getInputCloud is deprecated. Please use getInputSource instead.")
-        PointCloudConstPtr const
-        getInputCloud ();
 
         /** \brief Provide a source point cloud dataset (must contain XYZ
           * data!), used to compute the correspondence distance.  
@@ -416,8 +404,6 @@ namespace pcl
     };
   }
 }
-
-#include <pcl/registration/impl/correspondence_rejection.hpp>
 
 #endif /* PCL_REGISTRATION_CORRESPONDENCE_REJECTION_H_ */
 

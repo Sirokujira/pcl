@@ -2,7 +2,7 @@
  * Software License Agreement (BSD License)
  *
  *  Point Cloud Library (PCL) - www.pointclouds.org
- *  Copyright (c) 2012-, Open Perception, Inc.
+ *  Copyright (c) 2010-2012, Willow Garage, Inc.
  *
  *  All rights reserved.
  *
@@ -33,26 +33,44 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
+ * $Id$
+ *
  */
 
-#ifndef PCL_REGISTRATION_CORRESPONDENCE_REJECTION_IMPL_HPP_
-#define PCL_REGISTRATION_CORRESPONDENCE_REJECTION_IMPL_HPP_
+#include <gtest/gtest.h>
+#include <pcl/common/geometry.h>
+#include <pcl/point_types.h>
 
-///////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT, typename NormalT> void
-pcl::registration::DataContainer<PointT, NormalT>::setInputCloud (const typename pcl::registration::DataContainer<PointT, NormalT>::PointCloudConstPtr &cloud)
+using namespace pcl;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+template <typename T> class XYZPointTypesTest : public ::testing::Test { };
+typedef ::testing::Types<BOOST_PP_SEQ_ENUM(PCL_XYZ_POINT_TYPES)> XYZPointTypes;
+TYPED_TEST_CASE(XYZPointTypesTest, XYZPointTypes);
+
+TYPED_TEST(XYZPointTypesTest, Distance)
 {
-  //input_ = cloud;
-  setInputSource (cloud);
+  TypeParam p1, p2;
+  p1.x = 3; p1.y = 4; p1.z = 5;
+  p2.y = 1; p2.x = 1; p2.z = 1.5;
+  double distance = geometry::distance (p1, p2);
+  EXPECT_NEAR (distance, 5.024938, 1e-4);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT, typename NormalT> typename pcl::registration::DataContainer<PointT, NormalT>::PointCloudConstPtr const
-pcl::registration::DataContainer<PointT, NormalT>::getInputCloud ()
+TYPED_TEST(XYZPointTypesTest, SquaredDistance)
 {
-  return (getInputSource ()); 
-  //return (input_); 
+  TypeParam p1, p2;
+  p1.x = 3; p1.y = 4; p1.z = 5;
+  p2.y = 1; p2.x = 1; p2.z = 1.5;
+  double distance = geometry::squaredDistance (p1, p2);
+  EXPECT_NEAR (distance, 25.25, 1e-4);
 }
 
-#endif    // PCL_REGISTRATION_CORRESPONDENCE_REJECTION_IMPL_HPP_
-
+/* ---[ */
+int
+main (int argc, char** argv)
+{
+  testing::InitGoogleTest (&argc, argv);
+  return (RUN_ALL_TESTS ());
+}
+/* ]--- */

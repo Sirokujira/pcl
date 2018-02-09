@@ -100,7 +100,7 @@ main (int argc, char ** argv)
   if (depth_file_specified)
     pcl::console::parse (argc, argv, "-d", depth_path);
   
-  PointCloudT::Ptr cloud = boost::make_shared < PointCloudT >();
+  PointCloudT::Ptr cloud = boost::shared_ptr<PointCloudT> (new PointCloudT);
   NormalCloudT::Ptr input_normals = boost::make_shared < NormalCloudT > ();
   
   bool pcd_file_specified = pcl::console::find_switch (argc, argv, "-p");
@@ -230,8 +230,9 @@ main (int argc, char ** argv)
           new_point.z = depth;
         }
         
-        uint32_t rgb = static_cast<uint32_t>(color_pixel[0]) << 16 |  static_cast<uint32_t>(color_pixel[1]) << 8 |  static_cast<uint32_t>(color_pixel[2]);
-        new_point.rgb = *reinterpret_cast<float*> (&rgb);
+        new_point.r = color_pixel[0];
+        new_point.g = color_pixel[1];
+        new_point.b = color_pixel[2];
         cloud->points.push_back (new_point);
         
       }

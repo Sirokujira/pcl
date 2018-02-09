@@ -2,8 +2,8 @@
  * Software License Agreement (BSD License)
  *
  *  Point Cloud Library (PCL) - www.pointclouds.org
- *  Copyright (c) 2010-2011, Willow Garage, Inc.
- *  Copyright (c) 2012-, Open Perception, Inc.
+ *  Copyright (c) 2016-, Open Perception, Inc.
+ *  Copyright (c) 2016, Voxar Labs, CIn-UFPE / DEINFO-UFRPE
  *
  *  All rights reserved.
  *
@@ -34,24 +34,14 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: io.h 5850 2012-06-06 14:04:59Z stfox88 $
- *
  */
 
-#ifndef PCL_TEST_BOOST_H_
-#define PCL_TEST_BOOST_H_
+#include <pcl/features/impl/gasd.hpp>
 
-#ifdef __GNUC__
-#pragma GCC system_header 
-#endif
-
-// Marking all Boost headers as system headers to remove warnings
-#include <boost/random.hpp>
-#include <boost/thread.hpp>
-#include <boost/smart_ptr/shared_array.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/uniform_real.hpp>
-#include <boost/random/variate_generator.hpp>
-
-#endif    // PCL_TEST_BOOST_H_
+#ifndef PCL_NO_PRECOMPILE
+#include <pcl/point_types.h>
+#include <pcl/impl/instantiate.hpp>
+// Instantiations of specific point types
+PCL_INSTANTIATE_PRODUCT(GASDEstimation, ((pcl::PointXYZ)(pcl::PointXYZRGB)(pcl::PointXYZRGBA)) ((pcl::GASDSignature512)(pcl::GASDSignature984)(pcl::GASDSignature7992)))
+PCL_INSTANTIATE_PRODUCT(GASDColorEstimation, ((pcl::PointXYZRGB)(pcl::PointXYZRGBA)) ((pcl::GASDSignature512)(pcl::GASDSignature984)(pcl::GASDSignature7992)))
+#endif  // PCL_NO_PRECOMPILE

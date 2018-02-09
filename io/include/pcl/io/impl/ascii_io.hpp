@@ -2,7 +2,6 @@
  * Software License Agreement (BSD License)
  *
  *  Point Cloud Library (PCL) - www.pointclouds.org
- *  Copyright (c) 2010-2012, Willow Garage, Inc.
  *  Copyright (c) 2012-, Open Perception, Inc.
  *
  *  All rights reserved.
@@ -34,19 +33,27 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id$
- *
  */
 
-#ifndef PCL_ROS_REGISTER_POINT_STRUCT_H_
-#define PCL_ROS_REGISTER_POINT_STRUCT_H_
+#ifndef PCL_IO_ASCII_IO_HPP_
+#define PCL_IO_ASCII_IO_HPP_
 
-#ifdef __DEPRECATED
-#warning The <pcl/ros/register_point_struct.h> header is deprecated. please use \
-<pcl/register_point_struct.h> instead.
-#endif
+template<typename PointT> void
+pcl::ASCIIReader::setInputFields ()
+{
+  pcl::getFields<PointT> (fields_);
 
-#include <pcl/register_point_struct.h>
+  // Remove empty fields and adjust offset
+  int offset =0;
+  for (std::vector<pcl::PCLPointField>::iterator field_iter = fields_.begin ();
+       field_iter != fields_.end (); field_iter++)
+  {
+    if (field_iter->name == "_") 
+      field_iter = fields_.erase (field_iter);
+    field_iter->offset = offset;
+    offset += typeSize (field_iter->datatype);
+  }
+}
 
 
-#endif  //#ifndef PCL_ROS_REGISTER_POINT_STRUCT_H_
+#endif    //PCL_IO_ASCII_IO_HPP_

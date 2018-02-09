@@ -205,7 +205,7 @@ CPCSegmentation Parameters: \n\
   /// -----------------------------------|  Preparations  |-----------------------------------
 
   bool sv_output_specified = pcl::console::find_switch (argc, argv, "-so");
-  bool show_visualization = (not pcl::console::find_switch (argc, argv, "-novis"));
+  bool show_visualization = (!pcl::console::find_switch (argc, argv, "-novis"));
   bool ignore_provided_normals = pcl::console::find_switch (argc, argv, "-nonormals");
   bool add_label_field = pcl::console::find_switch (argc, argv, "-add");
   bool save_binary_pcd = pcl::console::find_switch (argc, argv, "-bin");
@@ -314,7 +314,7 @@ CPCSegmentation Parameters: \n\
   pcl::console::parse (argc, argv, "-ct", concavity_tolerance_threshold);
   pcl::console::parse (argc, argv, "-st", smoothness_threshold);
   use_extended_convexity = pcl::console::find_switch (argc, argv, "-ec");
-  uint k_factor = 0;
+  unsigned int k_factor = 0;
   if (use_extended_convexity)
     k_factor = 1;
   use_sanity_criterion = pcl::console::find_switch (argc, argv, "-sc");
@@ -456,7 +456,7 @@ CPCSegmentation Parameters: \n\
     const unsigned char concave_color [3] = {255,  0,  0};
     const unsigned char cut_color     [3] = {  0,255,  0};
     const unsigned char* convex_color     = bg_white ? black_color : white_color;
-    const unsigned char* color;
+    const unsigned char* color = NULL;
 
     //The vertices in the supervoxel adjacency list are the supervoxel centroids
     //This iterates through them, finding the edges
@@ -489,9 +489,13 @@ CPCSegmentation Parameters: \n\
           color = concave_color;
 
         // two times since we add also two points per edge
+#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION == 0)
         colors->InsertNextTupleValue (color);
         colors->InsertNextTupleValue (color);
-
+#else       
+        colors->InsertNextTypedTuple (color);
+        colors->InsertNextTypedTuple (color);
+#endif      
         pcl::Supervoxel<PointT>::Ptr supervoxel = supervoxel_clusters.at (sv_label);
         pcl::PointXYZRGBA vert_curr = supervoxel->centroid_;
 

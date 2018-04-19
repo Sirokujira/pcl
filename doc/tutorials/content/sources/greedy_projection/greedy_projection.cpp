@@ -4,6 +4,8 @@
 #include <pcl/features/normal_3d.h>
 #include <pcl/surface/gp3.h>
 
+#include <pcl/io/vtk_io.h>
+
 int
 main (int argc, char** argv)
 {
@@ -57,6 +59,8 @@ main (int argc, char** argv)
   // Additional vertex information
   std::vector<int> parts = gp3.getPartIDs();
   std::vector<int> states = gp3.getPointStates();
+
+  pcl::io::saveVTKFile ("mesh.vtk", triangles);
 
   // Finish
   return (0);

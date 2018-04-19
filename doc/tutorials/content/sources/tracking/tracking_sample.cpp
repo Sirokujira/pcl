@@ -1,6 +1,6 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-#include <pcl/io/openni_grabber.h>
+#include <pcl/io/openni2_grabber.h>
 #include <pcl/console/parse.h>
 #include <pcl/common/time.h>
 #include <pcl/common/centroid.h>
@@ -157,7 +157,7 @@ viz_cb (pcl::visualization::PCLVisualizer& viz)
   new_cloud_ = false;
 }
 
-//OpenNI Grabber's cloud Callback function
+//OpenNI2 Grabber's cloud Callback function
 void
 cloud_cb (const CloudConstPtr &cloud)
 {
@@ -268,9 +268,9 @@ main (int argc, char** argv)
   tracker_->setReferenceCloud (transed_ref_downsampled);
   tracker_->setTrans (trans);
 
-  //Setup OpenNIGrabber and viewer
-  pcl::visualization::CloudViewer* viewer_ = new pcl::visualization::CloudViewer("PCL OpenNI Tracking Viewer");
-  pcl::Grabber* interface = new pcl::OpenNIGrabber (device_id);
+  //Setup OpenNI2Grabber and viewer
+  pcl::visualization::CloudViewer* viewer_ = new pcl::visualization::CloudViewer("PCL OpenNI2 Tracking Viewer");
+  pcl::Grabber* interface = new pcl::io::OpenNI2Grabber (device_id);
   boost::function<void (const CloudConstPtr&)> f =
     boost::bind (&cloud_cb, _1);
   interface->registerCallback (f);

@@ -13,6 +13,8 @@ int
   cloud->height = 1;
   cloud->points.resize (cloud->width * cloud->height);
 
+  srand((unsigned int)time(NULL));
+
   for (size_t i = 0; i < cloud->points.size (); ++i)
   {
     cloud->points[i].x = 1024 * rand () / (RAND_MAX + 1.0f);
@@ -31,12 +33,12 @@ int
   range_cond->addComparison (pcl::FieldComparison<pcl::PointXYZ>::ConstPtr (new
       pcl::FieldComparison<pcl::PointXYZ> ("z", pcl::ComparisonOps::GT, 0.0)));
   range_cond->addComparison (pcl::FieldComparison<pcl::PointXYZ>::ConstPtr (new
-      pcl::FieldComparison<pcl::PointXYZ> ("z", pcl::ComparisonOps::LT, 0.8)));
+      pcl::FieldComparison<pcl::PointXYZ> ("z", pcl::ComparisonOps::LT, 512 * 0.8)));
 
   // build the filter
   pcl::ConditionalRemoval<pcl::PointXYZ> condrem (range_cond);
   condrem.setInputCloud (cloud);
-  condrem.setKeepOrganized(true);
+  condrem.setKeepOrganized(false);
 
   // apply filter
   condrem.filter (*cloud_filtered);

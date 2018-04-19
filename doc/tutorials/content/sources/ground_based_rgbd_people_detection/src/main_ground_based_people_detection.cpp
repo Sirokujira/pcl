@@ -48,9 +48,11 @@
 #include <pcl/console/parse.h>
 #include <pcl/point_types.h>
 #include <pcl/visualization/pcl_visualizer.h>    
-#include <pcl/io/openni_grabber.h>
+#include <pcl/io/openni2_grabber.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
 #include <pcl/people/ground_based_people_detection_app.h>
+
+#include <pcl/common/time.h>
 
 typedef pcl::PointXYZRGBA PointT;
 typedef pcl::PointCloud<PointT> PointCloudT;
@@ -114,10 +116,13 @@ int main (int argc, char** argv)
         return print_help();
 
   // Algorithm parameters:
-  std::string svm_filename = "../../people/data/trainedLinearSVMForPeopleDetectionWithHOG.yaml";
+  // std::string svm_filename = "../../people/data/trainedLinearSVMForPeopleDetectionWithHOG.yaml";
+  std::string svm_filename = "trainedLinearSVMForPeopleDetectionWithHOG.yaml";
   float min_confidence = -1.5;
   float min_height = 1.3;
   float max_height = 2.3;
+  float min_width = 0.2;
+  float max_width = 2.3;
   float voxel_size = 0.06;
   Eigen::Matrix3f rgb_intrinsics_matrix;
   rgb_intrinsics_matrix << 525, 0.0, 319.5, 0.0, 525, 239.5, 0.0, 0.0, 1.0; // Kinect RGB camera intrinsics
@@ -131,7 +136,7 @@ int main (int argc, char** argv)
   // Read Kinect live stream:
   PointCloudT::Ptr cloud (new PointCloudT);
   bool new_cloud_available_flag = false;
-  pcl::Grabber* interface = new pcl::OpenNIGrabber();
+  pcl::Grabber* interface = new pcl::io::OpenNI2Grabber();
   boost::function<void (const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr&)> f =
       boost::bind (&cloud_cb_, _1, cloud, &new_cloud_available_flag);
   interface->registerCallback (f);
@@ -186,7 +191,9 @@ int main (int argc, char** argv)
   people_detector.setVoxelSize(voxel_size);                        // set the voxel size
   people_detector.setIntrinsics(rgb_intrinsics_matrix);            // set RGB camera intrinsic parameters
   people_detector.setClassifier(person_classifier);                // set person classifier
-  people_detector.setHeightLimits(min_height, max_height);         // set person classifier
+// NG?
+//  people_detector.setHeightLimits(min_height, max_height);         // set person classifier
+  people_detector.setPersonClusterLimits(min_height, max_height, min_width, max_width);
 //  people_detector.setSensorPortraitOrientation(true);             // set sensor orientation to vertical
 
   // For timing:

@@ -284,6 +284,15 @@ endif(NOT PCL_SHARED_LIBS OR ((WIN32 AND NOT MINGW) AND NOT PCL_BUILD_WITH_FLANN
 find_package(FLANN 1.7.0 REQUIRED)
 include_directories(${FLANN_INCLUDE_DIRS})
 
+# nanoflann
+option(WITH_NANOFLANN "" TRUE)
+if(WITH_NANOFLANN)
+  find_package(nanoflann REQUIRED)
+  if(NANOFLANN_FOUND)
+    include_directories(${NANOFLANN_INCLUDE_DIRS})
+  endif(NANOFLANN_FOUND)
+endif(WITH_NANOFLANN)
+
 # libusb-1.0
 option(WITH_LIBUSB "Build USB RGBD-Camera drivers" TRUE)
 if(WITH_LIBUSB)

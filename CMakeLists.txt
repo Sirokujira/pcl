@@ -287,11 +287,12 @@ include_directories(${FLANN_INCLUDE_DIRS})
 # nanoflann
 option(WITH_NANOFLANN "" TRUE)
 if(WITH_NANOFLANN)
-  find_package(nanoflann REQUIRED)
+  find_package(NANOFLANN REQUIRED)
   if(NANOFLANN_FOUND)
     include_directories(${NANOFLANN_INCLUDE_DIRS})
   endif(NANOFLANN_FOUND)
 endif(WITH_NANOFLANN)
+
 
 # libusb-1.0
 option(WITH_LIBUSB "Build USB RGBD-Camera drivers" TRUE)

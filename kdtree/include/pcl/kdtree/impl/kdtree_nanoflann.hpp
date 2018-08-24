@@ -48,8 +48,8 @@
 using namespace Eigen;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT, typename Dist>
-pcl::KdTreeNanoFLANN<PointT, Dist>::KdTreeNanoFLANN (bool sorted)
+template <typename PointT>
+pcl::KdTreeNANOFLANN<PointT>::KdTreeNANOFLANN (bool sorted)
   : pcl::KdTree<PointT> (sorted)
   , flann_index_ (), cloud_ ()
   , index_mapping_ (), identity_mapping_ (false)
@@ -60,8 +60,8 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::KdTreeNanoFLANN (bool sorted)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT, typename Dist>
-pcl::KdTreeNanoFLANN<PointT, Dist>::KdTreeNanoFLANN (const KdTreeNanoFLANN<PointT, Dist> &k) 
+template <typename PointT>
+pcl::KdTreeNANOFLANN<PointT>::KdTreeNANOFLANN (const KdTreeNANOFLANN<PointT> &k) 
   : pcl::KdTree<PointT> (false)
   , flann_index_ (), cloud_ ()
   , index_mapping_ (), identity_mapping_ (false)
@@ -73,8 +73,8 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::KdTreeNanoFLANN (const KdTreeNanoFLANN<Point
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT, typename Dist> void 
-pcl::KdTreeNanoFLANN<PointT, Dist>::setEpsilon (float eps)
+template <typename PointT> void 
+pcl::KdTreeNANOFLANN<PointT>::setEpsilon (float eps)
 {
   epsilon_ = eps;
   param_k_ =  nanoflann::SearchParams (-1 , epsilon_);
@@ -82,8 +82,8 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::setEpsilon (float eps)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT, typename Dist> void 
-pcl::KdTreeNanoFLANN<PointT, Dist>::setSortedResults (bool sorted)
+template <typename PointT> void 
+pcl::KdTreeNANOFLANN<PointT>::setSortedResults (bool sorted)
 {
   sorted_ = sorted;
   param_k_ = nanoflann::SearchParams (-1, epsilon_);
@@ -91,8 +91,8 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::setSortedResults (bool sorted)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT, typename Dist> void 
-pcl::KdTreeNanoFLANN<PointT, Dist>::setInputCloud (const PointCloudConstPtr &cloud, const IndicesConstPtr &indices)
+template <typename PointT> void 
+pcl::KdTreeNANOFLANN<PointT>::setInputCloud (const PointCloudConstPtr &cloud, const IndicesConstPtr &indices)
 {
   cleanup ();   // Perform an automatic cleanup of structures
 
@@ -105,7 +105,7 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::setInputCloud (const PointCloudConstPtr &clo
   // Allocate enough data
   if (!input_)
   {
-    PCL_ERROR ("[pcl::KdTreeNanoFLANN::setInputCloud] Invalid input!\n");
+    PCL_ERROR ("[pcl::KdTreeNANOFLANN::setInputCloud] Invalid input!\n");
     return;
   }
   if (indices != NULL)
@@ -119,7 +119,7 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::setInputCloud (const PointCloudConstPtr &clo
   total_nr_points_ = static_cast<int> (index_mapping_.size ());
   if (total_nr_points_ == 0)
   {
-    PCL_ERROR ("[pcl::KdTreeNanoFLANN::setInputCloud] Cannot create a KDTree with an empty input cloud!\n");
+    PCL_ERROR ("[pcl::KdTreeNANOFLANN::setInputCloud] Cannot create a KDTree with an empty input cloud!\n");
     return;
   }
 
@@ -127,14 +127,18 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::setInputCloud (const PointCloudConstPtr &clo
   //                                                             index_mapping_.size (), 
   //                                                             dim_),
   //                                     ::flann::KDTreeSingleIndexParams (15))); // max 15 points/leaf
+
+  typedef PointCloudAdaptor<PointCloud<float> > PC2KD
   const PC2KD pc2kd(cloud); // The adaptor
+  typedef KDTreeSingleIndexAdaptor<L2_Simple_Adaptor<float, PC2KD>, PC2KD, 3> FLANNIndex;
+
   flann_index_ = FLANNIndex(3, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15));
-  flann_index_->buildIndex ();
+  flann_index_->buildIndex();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT, typename Dist> int 
-pcl::KdTreeNanoFLANN<PointT, Dist>::nearestKSearch (const PointT &point, int k, 
+template <typename PointT> int 
+pcl::KdTreeNANOFLANN<PointT>::nearestKSearch (const PointT &point, int k, 
                                                 std::vector<int> &k_indices, 
                                                 std::vector<float> &k_distances) const
 {
@@ -147,22 +151,19 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::nearestKSearch (const PointT &point, int k,
   k_distances.resize (k);
 
   std::vector<float> query (dim_);
-  // point_representation_->vectorize (static_cast<PointT> (point), query);
-  // for (size_t d = 0; d < dim_; d++)
-  //     query[d] = max_range * (rand() % 1000) / num_t(1000); 
-
-
-  typedef KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Dynamic, Dynamic>> my_kd_tree_t;
-  // my_kd_tree_t index(dim_, 
+  point_representation_->vectorize (static_cast<PointT> (point), query);
 
   ::flann::Matrix<int> k_indices_mat (&k_indices[0], 1, k);
   ::flann::Matrix<float> k_distances_mat (&k_distances[0], 1, k);
   // Wrap the k_indices and k_distances vectors (no data copy)
-  flann_index_->knnSearch (::flann::Matrix<float> (&query[0], 1, dim_), 
-                           k_indices_mat, k_distances_mat,
-                           k, param_k_);
+  // flann_index_->knnSearch (::flann::Matrix<float> (&query[0], 1, dim_), 
+  //                         k_indices_mat, k_distances_mat,
+  //                         k, param_k_);
 
-  k = index.knnSearch(&query[0], k, &k_indices[0], &k_distances[0]);
+  nanoflann::KNNResultSet<float> resultSet(k);
+  resultSet.init(&k_indices, &k_distances);
+  index.findNeighbors(resultSet, &query[0], nanoflann::SearchParams(10));
+  // k = index.knnSearch(&query[0], k, &k_indices[0], &k_distances[0]);
   k_indices.resize(k)
   k_distances.resize(k)
 
@@ -170,8 +171,8 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::nearestKSearch (const PointT &point, int k,
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT, typename Dist> int 
-pcl::KdTreeNanoFLANN<PointT, Dist>::radiusSearch (const PointT &point, double radius, std::vector<int> &k_indices,
+template <typename PointT> int 
+pcl::KdTreeNANOFLANN<PointT>::radiusSearch (const PointT &point, double radius, std::vector<int> &k_indices,
                                               std::vector<float> &k_sqr_dists, unsigned int max_nn) const
 {
   assert (point_representation_->isValid (point) && "Invalid (NaN, Inf) point coordinates given to radiusSearch!");
@@ -183,40 +184,22 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::radiusSearch (const PointT &point, double ra
   if (max_nn == 0 || max_nn > static_cast<unsigned int> (total_nr_points_))
     max_nn = total_nr_points_;
 
-  std::vector<std::vector<int> > indices(1);
-  std::vector<std::vector<float> > dists(1);
+  std::vector<std::pair<size_t, double> > ret_matches;
+  nanoflann::SearchParams params;
+  const size_t nMatches = index.radiusSearch(&query[0], radius, ret_matches, params);
 
-  std::vector<std::pair<size_t, float> > ret_matches;
-  nanoflann::SearchParams params; 
-  params.sorted = false; 
+  // std::cout << "radiusSearch(): radius=" << search_radius << " -> " << nMatches << " matches\n";
+  // for (size_t i = 0; i < nMatches; i++)
+  //   std::cout << "idx["<< i << "]=" << ret_matches[i].first << " dist["<< i << "]=" << ret_matches[i].second << std::endl;
+  // std::cout << "\n";
 
-  cout << "radiusSearch(): radius=" << search_radius << " -> " << nMatches << " matches\n"; 
-  for (size_t i = 0; i < nMatches; i++) 
-      cout << "idx["<< i << "]=" << ret_matches[i].first << " dist["<< i << "]=" << ret_matches[i].second << endl; 
-  cout << "\n"; 
-
-  // nanoflann::SearchParams params (param_radius_);
-  // if (max_nn == static_cast<unsigned int>(total_nr_points_))
-  //   params.max_neighbors = -1;  // return all neighbors in radius
-  // else
-  //   params.max_neighbors = max_nn;
-
-  /*
-  int neighbors_in_radius = flann_index_->radiusSearch (::flann::Matrix<float> (&query[0], 1, dim_),
-      indices,
-      dists,
-      static_cast<float> (radius * radius), 
-      params);
-  */
-  const size_t nMatches = index.radiusSearch(&query[0], param_radius_, ret_matches, params);
-
-  k_indices = indices[0];
-  k_sqr_dists = dists[0];
+  k_indices = ret_matches[0].first;
+  k_sqr_dists = ret_matches[0].second;
 
   // Do mapping to original point cloud
   if (!identity_mapping_) 
   {
-    for (int i = 0; i < neighbors_in_radius; ++i)
+    for (int i = 0; i < nMatches; ++i)
     {
       int& neighbor_index = k_indices[i];
       neighbor_index = index_mapping_[neighbor_index];
@@ -227,8 +210,8 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::radiusSearch (const PointT &point, double ra
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT, typename Dist> void 
-pcl::KdTreeNanoFLANN<PointT, Dist>::cleanup ()
+template <typename PointT> void 
+pcl::KdTreeNANOFLANN<PointT>::cleanup ()
 {
   // Data array cleanup
   index_mapping_.clear ();
@@ -238,8 +221,8 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::cleanup ()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT, typename Dist> void 
-pcl::KdTreeNanoFLANN<PointT, Dist>::convertCloudToArray (const PointCloud &cloud)
+template <typename PointT> void 
+pcl::KdTreeNANOFLANN<PointT>::convertCloudToArray (const PointCloud &cloud)
 {
   // No point in doing anything if the array is empty
   if (cloud.points.empty ())
@@ -265,15 +248,14 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::convertCloudToArray (const PointCloud &cloud
     }
 
     index_mapping_.push_back (cloud_index);
-
     point_representation_->vectorize (cloud.points[cloud_index], cloud_ptr);
     cloud_ptr += dim_;
   }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT, typename Dist> void 
-pcl::KdTreeNanoFLANN<PointT, Dist>::convertCloudToArray (const PointCloud &cloud, const std::vector<int> &indices)
+template <typename PointT> void 
+pcl::KdTreeNANOFLANN<PointT>::convertCloudToArray (const PointCloud &cloud, const std::vector<int> &indices)
 {
   // No point in doing anything if the array is empty
   if (cloud.points.empty ())
@@ -310,7 +292,7 @@ pcl::KdTreeNanoFLANN<PointT, Dist>::convertCloudToArray (const PointCloud &cloud
   }
 }
 
-#define PCL_INSTANTIATE_KdTreeNanoFLANN(T) template class PCL_EXPORTS pcl::KdTreeNanoFLANN<T>;
+#define PCL_INSTANTIATE_KdTreeNANOFLANN(T) template class PCL_EXPORTS pcl::KdTreeNANOFLANN<T>;
 
 #endif  //#ifndef _PCL_KDTREE_KDTREE_IMPL_NANOFLANN_H_
 

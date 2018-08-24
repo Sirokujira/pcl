@@ -11,18 +11,22 @@ PCL_ADD_DOC("${SUBSYS_NAME}")
 if(build)
     set(srcs 
         src/kdtree_flann.cpp
+        src/kdtree_nanoflann.cpp
         )
 
     set(incs 
         "include/pcl/${SUBSYS_NAME}/kdtree.h"
         "include/pcl/${SUBSYS_NAME}/io.h"
         "include/pcl/${SUBSYS_NAME}/flann.h"
+        "include/pcl/${SUBSYS_NAME}/nanoflann.h"
         "include/pcl/${SUBSYS_NAME}/kdtree_flann.h"
+        "include/pcl/${SUBSYS_NAME}/kdtree_nanoflann.h"
         )
 
     set(impl_incs 
         "include/pcl/${SUBSYS_NAME}/impl/io.hpp"
         "include/pcl/${SUBSYS_NAME}/impl/kdtree_flann.hpp"
+        "include/pcl/${SUBSYS_NAME}/impl/kdtree_nanoflann.hpp"
         )
 
     set(LIB_NAME "pcl_${SUBSYS_NAME}")

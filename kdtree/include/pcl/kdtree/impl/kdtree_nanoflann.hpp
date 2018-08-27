@@ -73,8 +73,8 @@ pcl::KdTreeNANOFLANN<PointT>::KdTreeNANOFLANN (const KdTreeNANOFLANN<PointT> &k)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT> void 
-pcl::KdTreeNANOFLANN<PointT>::setEpsilon (float eps)
+template <typename PointT>
+void pcl::KdTreeNANOFLANN<PointT>::setEpsilon (float eps)
 {
   epsilon_ = eps;
   param_k_ =  nanoflann::SearchParams (-1 , epsilon_);
@@ -128,12 +128,12 @@ pcl::KdTreeNANOFLANN<PointT>::setInputCloud (const PointCloudConstPtr &cloud, co
   //                                                             dim_),
   //                                     ::flann::KDTreeSingleIndexParams (15))); // max 15 points/leaf
 
-  typedef PointCloudAdaptor<PointCloud<float> > PC2KD
-  const PC2KD pc2kd(cloud); // The adaptor
-  typedef KDTreeSingleIndexAdaptor<L2_Simple_Adaptor<float, PC2KD>, PC2KD, 3> FLANNIndex;
+  typedef PointCloudAdaptor<pcl::PointCloud<PointT>> PC2KD;
+  // const PC2KD pc2kd(cloud->get()); // The adaptor
+  // typedef KDTreeSingleIndexAdaptor<L2_Simple_Adaptor<PointT, PC2KD>, PC2KD, 3> FLANNIndex;
 
-  flann_index_ = FLANNIndex(3, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15));
-  flann_index_->buildIndex();
+  // flann_index_ = new FLANNIndex(3, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15));
+  // flann_index_->buildIndex();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -153,19 +153,19 @@ pcl::KdTreeNANOFLANN<PointT>::nearestKSearch (const PointT &point, int k,
   std::vector<float> query (dim_);
   point_representation_->vectorize (static_cast<PointT> (point), query);
 
-  ::flann::Matrix<int> k_indices_mat (&k_indices[0], 1, k);
-  ::flann::Matrix<float> k_distances_mat (&k_distances[0], 1, k);
+  // flann::Matrix<int> k_indices_mat (&k_indices[0], 1, k);
+  // flann::Matrix<float> k_distances_mat (&k_distances[0], 1, k);
   // Wrap the k_indices and k_distances vectors (no data copy)
   // flann_index_->knnSearch (::flann::Matrix<float> (&query[0], 1, dim_), 
   //                         k_indices_mat, k_distances_mat,
   //                         k, param_k_);
 
   nanoflann::KNNResultSet<float> resultSet(k);
-  resultSet.init(&k_indices, &k_distances);
-  index.findNeighbors(resultSet, &query[0], nanoflann::SearchParams(10));
-  // k = index.knnSearch(&query[0], k, &k_indices[0], &k_distances[0]);
-  k_indices.resize(k)
-  k_distances.resize(k)
+  // resultSet.init(&k_indices, &k_distances);
+  // index.findNeighbors(resultSet, &query[0], nanoflann::SearchParams(10));
+  // // k = index.knnSearch(&query[0], k, &k_indices[0], &k_distances[0]);
+  // k_indices.resize(k)
+  // k_distances.resize(k)
 
   return (k);
 }
@@ -184,19 +184,20 @@ pcl::KdTreeNANOFLANN<PointT>::radiusSearch (const PointT &point, double radius, 
   if (max_nn == 0 || max_nn > static_cast<unsigned int> (total_nr_points_))
     max_nn = total_nr_points_;
 
-  std::vector<std::pair<size_t, double> > ret_matches;
+  std::vector<std::pair<size_t, PointT> > ret_matches;
   nanoflann::SearchParams params;
-  const size_t nMatches = index.radiusSearch(&query[0], radius, ret_matches, params);
+  // const size_t nMatches = flann_index_.radiusSearch(&query[0], radius, ret_matches, params);
 
   // std::cout << "radiusSearch(): radius=" << search_radius << " -> " << nMatches << " matches\n";
   // for (size_t i = 0; i < nMatches; i++)
   //   std::cout << "idx["<< i << "]=" << ret_matches[i].first << " dist["<< i << "]=" << ret_matches[i].second << std::endl;
   // std::cout << "\n";
 
-  k_indices = ret_matches[0].first;
-  k_sqr_dists = ret_matches[0].second;
+  k_indices = (std::vector<int>)ret_matches[0].first;
+  // k_sqr_dists = ret_matches[0].second;
 
   // Do mapping to original point cloud
+  /*
   if (!identity_mapping_) 
   {
     for (int i = 0; i < nMatches; ++i)
@@ -205,8 +206,9 @@ pcl::KdTreeNANOFLANN<PointT>::radiusSearch (const PointT &point, double radius, 
       neighbor_index = index_mapping_[neighbor_index];
     }
   }
+  */
 
-  return (neighbors_in_radius);
+  return 0.0; //(neighbors_in_radius);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

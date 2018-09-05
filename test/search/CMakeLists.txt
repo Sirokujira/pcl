@@ -16,6 +16,11 @@ if (build)
   PCL_ADD_TEST(flann_search test_flann_search
                FILES test_flann_search.cpp
                LINK_WITH pcl_gtest pcl_search pcl_kdtree)
+
+  PCL_ADD_TEST(nanoflann_search test_nanoflann_search
+               FILES test_nanoflann_search.cpp
+               LINK_WITH pcl_gtest pcl_search pcl_kdtree)
+
   PCL_ADD_TEST(organized_neighbor test_organized_search
                FILES test_organized.cpp
                LINK_WITH pcl_gtest pcl_search pcl_kdtree)

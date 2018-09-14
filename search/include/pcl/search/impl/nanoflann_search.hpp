@@ -166,7 +166,7 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (
     const PointCloud& cloud, const std::vector<int>& indices, int k, std::vector< std::vector<int> >& k_indices,
     std::vector< std::vector<float> >& k_sqr_distances) const
 {
-  std::vector<std::pair<int, PointT> > ret_matches;
+  std::vector<std::pair<size_t, PointT> > ret_matches;
   if (indices.empty ())
   {
     k_indices.resize (cloud.size ());
@@ -272,7 +272,7 @@ pcl::search::NanoFlannSearch<PointT>::radiusSearch (
   const PointT search_radius = PointT(radius, radius, radius);
 
   // int result = index_->radiusSearch (m, i, d, static_cast<float> (radius * radius), params);
-  const size_t nMatches = index_->radiusSearch(point, search_radius, ret_matches, params);
+  const size_t nMatches = index_->radiusSearch(&point, search_radius, ret_matches, params);
   cout << "radiusSearch(): radius=" << radius << " -> " << nMatches << " matches\n";
 
   for (size_t i = 0; i < nMatches; i++)
@@ -281,8 +281,8 @@ pcl::search::NanoFlannSearch<PointT>::radiusSearch (
   cout << "\n"; 
 
   delete [] data;
-  indices = i [0];
-  distances = d [0];
+  // indices = i [0];
+  // distances = d [0];
 
   // return result;
   return nMatches;
@@ -296,7 +296,8 @@ void pcl::search::NanoFlannSearch<PointT>::radiusSearch (
         // nanoflann -> std::vector<std::pair<size_t,num_t> >
         std::vector< std::vector<int> >& k_indices, std::vector< std::vector<float> >& k_sqr_distances) const
 {
-  std::vector<std::pair<size_t, float> > ret_matches;
+  // std::vector<std::pair<size_t, float> > ret_matches;
+  std::vector<std::pair<size_t, PointT> > ret_matches;
   if (indices.empty ()) // full point cloud + trivial copy operation = no need to do any conversion/copying to the flann matrix!
   {
     k_indices.resize (cloud.size ());
@@ -330,6 +331,7 @@ void pcl::search::NanoFlannSearch<PointT>::radiusSearch (
     params.sorted = sorted_results_;
     params.eps = eps_;
     const PointT search_radius = PointT(radius, radius, radius);
+    // const float search_radius = static_cast<float>(radius);
 
     // index_->radiusSearch (m, k_indices, k_sqr_distances, static_cast<float> (radius * radius), params);
     const size_t nMatches = index_->radiusSearch(&cloud[0], search_radius, ret_matches, params);
@@ -365,7 +367,9 @@ void pcl::search::NanoFlannSearch<PointT>::radiusSearch (
     nanoflann::SearchParams params;
     params.sorted = sorted_results_;
     params.eps = eps_;
-    const PointT search_radius = PointT(radius, radius, radius);
+    // const PointT search_radius = PointT(radius, radius, radius);
+    // const float search_radius = static_cast<float>(radius);
+  	const PointT search_radius = PointT(radius, radius, radius);
 
     // index_->radiusSearch (m, k_indices, k_sqr_distances, static_cast<float> (radius * radius), params);
     const size_t nMatches = index_->radiusSearch(&cloud[0], search_radius, ret_matches, params);

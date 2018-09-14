@@ -18,6 +18,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/Modules")
 macro(pcl_report_not_found _reason)
   unset(PCL_FOUND)
   unset(PCL_LIBRARIES)
+  unset(PCL_COMPONENTS)
   unset(PCL_INCLUDE_DIRS)
   unset(PCL_LIBRARY_DIRS)
   unset(PCL_DEFINITIONS)
@@ -415,7 +416,8 @@ set(PCL_DEBUG_SUFFIX "@CMAKE_DEBUG_POSTFIX@")
 set(PCL_RELEASE_SUFFIX "@CMAKE_RELEASE_POSTFIX@")
 
 #set SSE flags used compiling PCL
-list(APPEND PCL_DEFINITIONS "@PCLCONFIG_SSE_DEFINITIONS@")
+list(APPEND PCL_DEFINITIONS @PCLCONFIG_SSE_DEFINITIONS@)
+list(APPEND PCL_COMPILE_OPTIONS @PCLCONFIG_SSE_COMPILE_OPTIONS@)
 
 set(pcl_all_components @PCLCONFIG_AVAILABLE_COMPONENTS@ )
 list(LENGTH pcl_all_components PCL_NB_COMPONENTS)
@@ -448,6 +450,21 @@ else(PCL_FIND_COMPONENTS)
 endif(PCL_FIND_COMPONENTS)
 
 compute_dependencies(PCL_TO_FIND_COMPONENTS)
+
+# We do not need to find components that have been found already, e.g. during previous invocation
+# of find_package(PCL). Filter them out.
+foreach(component ${PCL_TO_FIND_COMPONENTS})
+  string(TOUPPER "${component}" COMPONENT)
+  if(NOT PCL_${COMPONENT}_FOUND)
+    list(APPEND _PCL_TO_FIND_COMPONENTS ${component})
+  endif()
+endforeach()
+set(PCL_TO_FIND_COMPONENTS ${_PCL_TO_FIND_COMPONENTS})
+unset(_PCL_TO_FIND_COMPONENTS)
+
+if(NOT PCL_TO_FIND_COMPONENTS)
+  return()
+endif()
 
 # compute external dependencies per component
 foreach(component ${PCL_TO_FIND_COMPONENTS})
@@ -529,32 +546,78 @@ foreach(component ${PCL_TO_FIND_COMPONENTS})
   
   if(PCL_${COMPONENT}_FOUND)
     if(NOT "${PCL_${COMPONENT}_INCLUDE_DIRS}" STREQUAL "")
-      list(REMOVE_DUPLICATES PCL_${COMPONENT}_INCLUDE_DIRS)
+      set(_filtered "")
+      foreach(_inc ${PCL_${COMPONENT}_INCLUDE_DIRS})
+        if(EXISTS ${_inc})
+          list(APPEND _filtered "${_inc}")
+        endif()
+      endforeach()
+      list(REMOVE_DUPLICATES _filtered)
+      set(PCL_${COMPONENT}_INCLUDE_DIRS ${_filtered})
+      list(APPEND PCL_INCLUDE_DIRS ${_filtered})
     endif(NOT "${PCL_${COMPONENT}_INCLUDE_DIRS}" STREQUAL "")
-    list(APPEND PCL_INCLUDE_DIRS ${PCL_${COMPONENT}_INCLUDE_DIRS})
     mark_as_advanced(PCL_${COMPONENT}_INCLUDE_DIRS)
     if(_is_header_only EQUAL -1)
       list(APPEND PCL_DEFINITIONS ${PCL_${COMPONENT}_DEFINITIONS})
       list(APPEND PCL_LIBRARY_DIRS ${component_library_path})
       if(PCL_${COMPONENT}_LIBRARY_DEBUG)
-        list(APPEND PCL_${COMPONENT}_LIBRARIES optimized ${PCL_${COMPONENT}_LIBRARY} debug ${PCL_${COMPONENT}_LIBRARY_DEBUG})
         list(APPEND PCL_LIBRARY_DIRS ${component_library_path_debug})
-      else(PCL_${COMPONENT}_LIBRARY_DEBUG)
-        list(APPEND PCL_${COMPONENT}_LIBRARIES ${PCL_${COMPONENT}_LIBRARY})
-      endif(PCL_${COMPONENT}_LIBRARY_DEBUG)
-      list(APPEND PCL_LIBRARIES ${PCL_${COMPONENT}_LIBRARIES})
+      endif()
+      list(APPEND PCL_COMPONENTS ${pcl_component})
       mark_as_advanced(PCL_${COMPONENT}_LIBRARY PCL_${COMPONENT}_LIBRARY_DEBUG)
-    endif(_is_header_only EQUAL -1)    
+    endif()
     # Append internal dependencies
     foreach(int_dep ${pcl_${component}_int_dep})
       string(TOUPPER "${int_dep}" INT_DEP)
       if(PCL_${INT_DEP}_FOUND)
         list(APPEND PCL_${COMPONENT}_INCLUDE_DIRS ${PCL_${INT_DEP}_INCLUDE_DIRS})
         if(PCL_${INT_DEP}_LIBRARIES)
-          list(APPEND PCL_${COMPONENT}_LIBRARIES "${PCL_${INT_DEP}_LIBRARIES}")
+          list(APPEND PCL_${COMPONENT}_LINK_LIBRARIES "${PCL_${INT_DEP}_LIBRARIES}")
         endif(PCL_${INT_DEP}_LIBRARIES) 
       endif(PCL_${INT_DEP}_FOUND)
     endforeach(int_dep)
+    if(_is_header_only EQUAL -1)
+      add_library(${pcl_component} @PCL_LIB_TYPE@ IMPORTED)
+      if(PCL_${COMPONENT}_LIBRARY_DEBUG)
+        set_target_properties(${pcl_component}
+          PROPERTIES
+            IMPORTED_CONFIGURATIONS "RELEASE;DEBUG"
+            IMPORTED_LOCATION_RELEASE "${PCL_${COMPONENT}_LIBRARY}"
+            IMPORTED_LOCATION_DEBUG "${PCL_${COMPONENT}_LIBRARY_DEBUG}"
+            IMPORTED_IMPLIB_RELEASE "${PCL_${COMPONENT}_LIBRARY}"
+            IMPORTED_IMPLIB_DEBUG "${PCL_${COMPONENT}_LIBRARY_DEBUG}"
+        )
+      else()
+        set_target_properties(${pcl_component}
+          PROPERTIES
+            IMPORTED_LOCATION "${PCL_${COMPONENT}_LIBRARY}"
+            IMPORTED_IMPLIB "${PCL_${COMPONENT}_LIBRARY}"
+        )
+      endif()
+      foreach(def ${PCL_DEFINITIONS})
+        string(REPLACE " " ";" def2 ${def})
+        string(REGEX REPLACE "^-D" "" def3 "${def2}")
+        list(APPEND definitions ${def3})
+      endforeach()
+      if(CMAKE_VERSION VERSION_LESS 3.3)
+        set_target_properties(${pcl_component}
+          PROPERTIES
+            INTERFACE_COMPILE_DEFINITIONS "${definitions}"
+            INTERFACE_COMPILE_OPTIONS "${PCL_COMPILE_OPTIONS}"
+            INTERFACE_INCLUDE_DIRECTORIES "${PCL_${COMPONENT}_INCLUDE_DIRS}"
+            INTERFACE_LINK_LIBRARIES "${PCL_${COMPONENT}_LINK_LIBRARIES}"
+        )
+      else()
+        set_target_properties(${pcl_component}
+          PROPERTIES
+            INTERFACE_COMPILE_DEFINITIONS "${definitions}"
+            INTERFACE_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:${PCL_COMPILE_OPTIONS}>"
+            INTERFACE_INCLUDE_DIRECTORIES "${PCL_${COMPONENT}_INCLUDE_DIRS}"
+            INTERFACE_LINK_LIBRARIES "${PCL_${COMPONENT}_LINK_LIBRARIES}"
+        )
+      endif()
+      set(PCL_${COMPONENT}_LIBRARIES ${pcl_component})
+    endif()
   endif(PCL_${COMPONENT}_FOUND)
 endforeach(component)
 
@@ -570,8 +633,8 @@ if(NOT "${PCL_DEFINITIONS}" STREQUAL "")
   list(REMOVE_DUPLICATES PCL_DEFINITIONS)
 endif(NOT "${PCL_DEFINITIONS}" STREQUAL "")
 
-pcl_remove_duplicate_libraries(PCL_LIBRARIES PCL_DEDUP_LIBRARIES)
-set(PCL_LIBRARIES ${PCL_DEDUP_LIBRARIES})
+pcl_remove_duplicate_libraries(PCL_COMPONENTS PCL_LIBRARIES)
+
 # Add 3rd party libraries, as user code might include our .HPP implementations
 list(APPEND PCL_LIBRARIES ${BOOST_LIBRARIES} ${QHULL_LIBRARIES} ${OPENNI_LIBRARIES} ${OPENNI2_LIBRARIES} ${ENSENSO_LIBRARIES} ${davidSDK_LIBRARIES} ${DSSDK_LIBRARIES} ${RSSDK_LIBRARIES} ${FLANN_LIBRARIES} ${VTK_LIBRARIES})
 

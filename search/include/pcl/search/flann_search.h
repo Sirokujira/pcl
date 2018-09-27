@@ -371,5 +371,5 @@ namespace pcl
 
 #define PCL_INSTANTIATE_FlannSearch(T) template class PCL_EXPORTS pcl::search::FlannSearch<T>;
 
-#endif    // PCL_SEARCH_KDTREE_H_
+#endif    // PCL_SEARCH_FLANN_SEARCH_H_
 

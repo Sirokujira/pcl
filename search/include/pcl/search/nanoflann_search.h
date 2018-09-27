@@ -44,50 +44,79 @@
 #include <pcl/point_representation.h>
 #include <nanoflann.hpp>
 
-namespace nanoflann
-{
-  template<typename T> class NNIndex;
-  template<typename T> struct L2;
-  template<typename T> struct L2_Simple;
-  template<typename T> class Matrix;
-}
 
 namespace pcl
 {
   namespace search
   {
-    // And this is the "dataset to kd-tree" adaptor class:
+    // And this is the "dataset to kd-tree" adaptor class: 
     template <typename Derived>
     struct PointCloudAdaptor
+    { 
+      typedef typename Derived::coord_t coord_t;
+    
+      const Derived &obj; //!< A const ref to the data set origin
+    
+      /// The constructor that sets the data set source
+      PointCloudAdaptor(const Derived &obj_) : obj(obj_) { }
+    
+      /// CRTP helper method 
+      inline const Derived& derived() const { return obj; }
+    
+      // Must return the number of data points 
+      inline size_t kdtree_get_point_count() const { return derived().pts.size(); }
+    
+      // Returns the dim'th component of the idx'th point in the class: 
+      // Since this is inlined and the "dim" argument is typically an immediate value, the 
+      //  "if/else's" are actually solved at compile time. 
+      // inline coord_t kdtree_get_pt(const size_t idx, int dim) const
+      inline coord_t kdtree_get_pt(const size_t idx, int dim) const
+      {
+          if (dim == 0) return derived().pts[idx].x;
+          else if (dim == 1) return derived().pts[idx].y;
+          else return derived().pts[idx].z;
+      }
+    
+      // Optional bounding-box computation: return false to default to a standard bbox computation loop. 
+      //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again. 
+      //   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds) 
+      template <class BBOX> 
+      bool kdtree_get_bbox(BBOX& /*bb*/) const { return false; } 
+    }; // end of PointCloudAdaptor 
+
+    // reference code : nanoflann/examples/util.h
+    template <typename T>
+    struct SearchPointCloud
     {
-        const Derived &obj; //!< A const ref to the data set origin
-
-        /// The constructor that sets the data set source
-        PointCloudAdaptor(const Derived &obj_) : obj(obj_) { }
-
-        /// CRTP helper method
-        inline const Derived& derived() const { return obj; }
-
-        // Must return the number of data points
-        inline size_t kdtree_get_point_count() const { return derived().size(); }
-
-        // Returns the dim'th component of the idx'th point in the class:
-        // Since this is inlined and the "dim" argument is typically an immediate value, the
-        //  "if/else's" are actually solved at compile time.
-        inline float kdtree_get_pt(const size_t idx, int dim) const
-        {
-            if (dim == 0) return derived()[idx].x;
-            else if (dim == 1) return derived()[idx].y;
-            else return derived()[idx].z;
-        }
-
-        // Optional bounding-box computation: return false to default to a standard bbox computation loop.
-        //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
-        //   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds)
-        template <class BBOX>
-        bool kdtree_get_bbox(BBOX& /*bb*/) const { return false; }
-
-    }; // end of PointCloudAdaptor
+    typedef T coord_t;
+    
+    struct Point
+    {
+      T  x, y ,z;
+    }; 
+    
+    public:
+    std::vector<Point> pts;
+    
+    // Must return the number of data points 
+    inline size_t kdtree_get_point_count() const { return pts.size(); } 
+    
+    // Returns the dim'th component of the idx'th point in the class: 
+    // Since this is inlined and the "dim" argument is typically an immediate value, the 
+    //  "if/else's" are actually solved at compile time. 
+    inline T kdtree_get_pt(const size_t idx, const size_t dim) const 
+    { 
+      if (dim == 0) return pts[idx].x;
+      else if (dim == 1) return pts[idx].y;
+      else return pts[idx].z;
+    }
+    
+    // Optional bounding-box computation: return false to default to a standard bbox computation loop. 
+    //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again. 
+    //   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds) 
+    template <class BBOX> 
+    bool kdtree_get_bbox(BBOX& /* bb */) const { return false; } 
+    };
 
     /** \brief @b search::NanoFlannSearch is a generic NANOFLANN wrapper class for the new search interface.
       * It is able to wrap any NANOFLANN index type, e.g. the kd tree as well as indices for high-dimensional
@@ -101,11 +130,10 @@ namespace pcl
       * \code
       * // Feature and distance type
       * typedef SHOT352 FeatureT;
-      * typedef flann::L2<float> DistanceT;
       * 
       * // Search and index types
-      * typedef search::NanoFlannSearch<FeatureT, DistanceT> SearchT;
-      * typedef typename SearchT::FlannIndexCreatorPtr CreatorPtrT;
+      * typedef search::NanoFlannSearch<FeatureT> SearchT;
+      * typedef typename SearchT::NanoFlannIndexCreatorPtr CreatorPtrT;
       * typedef typename SearchT::KdTreeMultiIndexCreator IndexT;
       * typedef typename SearchT::PointRepresentationPtr RepresentationPtrT;
       * 
@@ -148,29 +176,129 @@ namespace pcl
         typedef boost::shared_ptr<const std::vector<int> > IndicesConstPtr;
 
         // 代替えチェック(必要か確認)
-        // typedef boost::shared_ptr<nanoflann::Matrix <float> > MatrixPtr;
-        // typedef boost::shared_ptr<const nanoflann::Matrix <float> > MatrixConstPtr;
+        // typedef boost::shared_ptr<flann::Matrix <float> > MatrixPtr;
+        // typedef boost::shared_ptr<const flann::Matrix <float> > MatrixConstPtr;
+        // 代替えとして
+        // typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+        typedef Eigen::MatrixXf Matrix;
+        typedef boost::shared_ptr<Eigen::MatrixXf> MatrixPtr;
+        typedef boost::shared_ptr<const Eigen::MatrixXf> MatrixConstPtr;
+    	// 初期化時のダミー用変数
+		float* init_dummy_data;
 
+        // 索引の作成?
         // 代替えチェック?(必要か確認)
         // typedef flann::NNIndex< FlannDistance > Index;
-        // typedef nanoflann::NNIndex Index;
         // typedef boost::shared_ptr<flann::NNIndex> IndexPtr;
+        // nanoflann 内部での treeIndex がこれにあたる？
+        // typedef nanoflann::NNIndex Index;
+        // typedef std::unique_ptr<nanoflann::NNIndex> IndexPtr;
+        typedef PointCloudAdaptor<SearchPointCloud<float>> PC2KD;
+        // construct a kd-tree index: 
+        // 初期値の関係から
+        // typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PC2KD>, PC2KD, 3> my_kd_tree_t;
+        typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PC2KD>, PC2KD, 3> Index;
+        typedef boost::shared_ptr< nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PC2KD>, PC2KD, 3> > IndexPtr;
+        // typedef std::unique_ptr< nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PC2KD>, PC2KD, 3> > IndexPtr;
+
 
         typedef pcl::PointRepresentation<PointT> PointRepresentation;
         typedef boost::shared_ptr<PointRepresentation> PointRepresentationPtr;
         typedef boost::shared_ptr<const PointRepresentation> PointRepresentationConstPtr;
 
-        typedef PointCloudAdaptor< pcl::PointCloud<PointT> > PC2KD;
-        // construct a kd-tree index: 
-        // 初期値の関係から
-        // typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<PointT, PC2KD>, PC2KD, dim_> my_kd_tree_t;
-        typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<PointT, PC2KD>, PC2KD, 3> my_kd_tree_t;
+        /** \brief Helper class that creates a NanoFLANN index from a given NanoFLANN matrix. To
+          * use a NanoFLANN index type with FlannSearch, implement this interface and
+          * pass an object of the new type to the NanoFlannSearch constructor.
+          * See the implementation of KdTreeIndexCreator for an example.
+          */
+        class NanoFlannIndexCreator
+        {
+          public:
+          /** \brief Create a NanoFLANN Index from the input data.
+            * \param[in] data The NanoFLANN matrix containing the input.
+            * \return The NanoFLANN index.
+            */
+            virtual IndexPtr createIndex (MatrixConstPtr data)=0;
 
-        // enum?
-        NanoFlannSearch (bool sorted = true);
+          /** \brief destructor 
+            */
+            virtual ~NanoFlannIndexCreator () {}
+        };
+        typedef boost::shared_ptr<NanoFlannIndexCreator> NanoFlannIndexCreatorPtr;
+
+        /** \brief Creates a FLANN KdTreeSingleIndex from the given input data.
+          */
+        class KdTreeIndexCreator: public NanoFlannIndexCreator
+        {
+          public:
+          /** \param[in] max_leaf_size All NanoFLANN kd trees created by this class will have
+            * a maximum of max_leaf_size points per leaf node. Higher values make index creation
+            * cheaper, but search more costly (and the other way around).
+            */
+            KdTreeIndexCreator (unsigned int max_leaf_size=15) : max_leaf_size_ (max_leaf_size){}
+      
+            /** \brief Empty destructor */
+            virtual ~KdTreeIndexCreator () {}
+
+          /** \brief Create a NanoFLANN Index from the input data.
+            * \param[in] data The NanoFLANN matrix containing the input.
+            * \return The NanoFLANN index.
+            */
+            virtual IndexPtr createIndex (MatrixConstPtr data);
+          private:
+            unsigned int max_leaf_size_;
+        };
+
+        /** \brief Creates a NanoFLANN KdTreeSingleIndex from the given input data.
+          */
+        class KMeansIndexCreator: public NanoFlannIndexCreator
+        {
+          public:
+          /** \brief All NanoFLANN kd trees created by this class will have
+            * a maximum of max_leaf_size points per leaf node. Higher values make index creation
+            * cheaper, but search more costly (and the other way around).
+            */
+            KMeansIndexCreator (){}
+            
+            /** \brief Empty destructor */
+            virtual ~KMeansIndexCreator () {}
+
+          /** \brief Create a NanoFLANN Index from the input data.
+            * \param[in] data The NanoFLANN matrix containing the input.
+            * \return The NanoFLANN index.
+            */
+            virtual IndexPtr createIndex (MatrixConstPtr data);
+          private:
+        };
+
+        /** \brief Creates a NanoFLANN KdTreeIndex of multiple randomized trees from the given input data,
+         *  suitable for feature matching. Note that in this case, it is often more efficient to use the
+         *  \ref flann::L2 distance functor.
+          */
+        class KdTreeMultiIndexCreator: public NanoFlannIndexCreator
+        {
+          public:
+          /** \param[in] trees Number of randomized trees to create.
+            */
+            KdTreeMultiIndexCreator (int trees = 4) : trees_ (trees) {}
+      
+            /** \brief Empty destructor */
+            virtual ~KdTreeMultiIndexCreator () {}
+
+          /** \brief Create a NanoFLANN Index from the input data.
+            * \param[in] data The NanoFLANN matrix containing the input.
+            * \return The NanoFLANN index.
+            */
+            virtual IndexPtr createIndex (MatrixConstPtr data);
+          private:
+            int trees_;
+        };
+
+        NanoFlannSearch (bool sorted = true, NanoFlannIndexCreatorPtr creator = NanoFlannIndexCreatorPtr (new KdTreeIndexCreator ()));
 
         /** \brief Destructor for NanoFlannSearch. */
-        virtual ~NanoFlannSearch()=default;
+        virtual
+        ~NanoFlannSearch();
 
         /** \brief Set the search epsilon precision (error bound) for nearest neighbors searches.
           * \param[in] eps precision (error bound) for nearest neighbors searches
@@ -244,7 +372,6 @@ namespace pcl
           * returned.
           * \return number of neighbors found in radius
           */
-        // override
         int
         radiusSearch (const PointT& point, double radius, 
                       std::vector<int> &k_indices, std::vector<float> &k_sqr_distances,
@@ -260,7 +387,7 @@ namespace pcl
           */
         virtual void
         radiusSearch (const PointCloud& cloud, const std::vector<int>& indices, double radius, 
-            std::vector< std::vector<int> >& k_indices, std::vector< std::vector<float> >& k_sqr_distances) const;
+            std::vector< std::vector<int> >& k_indices, std::vector< std::vector<float> >& k_sqr_distances, unsigned int max_nn=0) const;
 
         /** \brief Provide a pointer to the point representation to use to convert points into k-D vectors.
           * \param[in] point_representation the const boost shared pointer to a PointRepresentation
@@ -270,7 +397,7 @@ namespace pcl
         {
           point_representation_ = point_representation;
           dim_ = point_representation->getNumberOfDimensions ();
-          if (input_) // re-create the tree, since point_represenation might change things such as the scaling of the point clouds.
+          if (input_) // re-create the tree, since point_representation might change things such as the scaling of the point clouds.
             setInputCloud (input_, indices_);
         }
 
@@ -282,10 +409,22 @@ namespace pcl
         }
 
       protected:
-        /** The NANOFLANN index.
+
+        /** \brief converts the input data to a format usable by NanoFLANN
           */
-        // IndexPtr index_;
-        my_kd_tree_t* index_;
+        void convertInputToNanoFlannMatrix();
+
+        /** The NanoFLANN index.
+          */
+        IndexPtr index_;
+
+        /** The index creator, used to (re-) create the index when the search data is passed.
+          */
+        NanoFlannIndexCreatorPtr creator_;
+
+        /** Input data in FLANN format.
+          */
+        MatrixPtr input_nanoflann_;
 
         /** Epsilon for approximate NN search.
           */
@@ -294,6 +433,8 @@ namespace pcl
         /** Number of checks to perform for approximate NN search using the multiple randomized tree index
          */
         int checks_;
+        
+        bool input_copied_for_nanoflann_;
 
         // ???
         PointRepresentationConstPtr point_representation_;

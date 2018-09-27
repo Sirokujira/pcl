@@ -62,11 +62,15 @@
   }; // end of PointCloud 
   */
 
+namespace pcl
+{
+
   // And this is the "dataset to kd-tree" adaptor class: 
   template <typename Derived>
   struct PointCloudAdaptor
   { 
-      // typedef typename Derived::coord_t coord_t;
+      typedef typename Derived::coord_t coord_t;
+
       const Derived &obj; //!< A const ref to the data set origin
 
       /// The constructor that sets the data set source
@@ -76,17 +80,17 @@
       inline const Derived& derived() const { return obj; }
 
       // Must return the number of data points 
-      inline size_t kdtree_get_point_count() const { return derived().points.size(); }
+      inline size_t kdtree_get_point_count() const { return derived().pts.size(); }
 
       // Returns the dim'th component of the idx'th point in the class: 
       // Since this is inlined and the "dim" argument is typically an immediate value, the 
       //  "if/else's" are actually solved at compile time. 
       // inline coord_t kdtree_get_pt(const size_t idx, int dim) const
-      inline float kdtree_get_pt(const size_t idx, int dim) const
+      inline coord_t kdtree_get_pt(const size_t idx, int dim) const
       {
-          if (dim == 0) return derived().points[idx].x;
-          else if (dim == 1) return derived().points[idx].y;
-          else return derived().points[idx].z;
+          if (dim == 0) return derived().pts[idx].x;
+          else if (dim == 1) return derived().pts[idx].y;
+          else return derived().pts[idx].z;
       }
 
       // Optional bounding-box computation: return false to default to a standard bbox computation loop. 
@@ -96,8 +100,40 @@
       bool kdtree_get_bbox(BBOX& /*bb*/) const { return false; } 
   }; // end of PointCloudAdaptor 
 
-namespace pcl
-{
+  // reference code : nanoflann/examples/util.h
+  template <typename T>
+  struct SearchPointCloud
+  {
+    typedef T coord_t;
+
+    struct Point
+    {
+      T  x, y ,z;
+    }; 
+
+  public:
+    std::vector<Point> pts;
+
+    // Must return the number of data points 
+    inline size_t kdtree_get_point_count() const { return pts.size(); } 
+
+    // Returns the dim'th component of the idx'th point in the class: 
+    // Since this is inlined and the "dim" argument is typically an immediate value, the 
+    //  "if/else's" are actually solved at compile time. 
+    inline T kdtree_get_pt(const size_t idx, const size_t dim) const 
+    { 
+      if (dim == 0) return pts[idx].x;
+      else if (dim == 1) return pts[idx].y;
+      else return pts[idx].z;
+    }
+
+    // Optional bounding-box computation: return false to default to a standard bbox computation loop. 
+    //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again. 
+    //   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds) 
+    template <class BBOX> 
+    bool kdtree_get_bbox(BBOX& /* bb */) const { return false; } 
+  };
+
   // Forward declarations
   template <typename T> class PointRepresentation;
 
@@ -125,11 +161,12 @@ namespace pcl
       typedef boost::shared_ptr<std::vector<int> > IndicesPtr;
       typedef boost::shared_ptr<const std::vector<int> > IndicesConstPtr;
 
-      typedef PointCloudAdaptor<pcl::PointCloud<PointT>> PC2KD;
+      // typedef PointCloudAdaptor<pcl::PointCloud<PointT>> PC2KD;
+      typedef PointCloudAdaptor<SearchPointCloud<float>> PC2KD;
       typedef nanoflann::KDTreeSingleIndexAdaptor<
-        nanoflann::L2_Simple_Adaptor<PointT, PC2KD>,
+        nanoflann::L2_Simple_Adaptor<float, PC2KD>,
         PC2KD,
-        3> FLANNIndex;
+        3> NANOFLANNIndex;
 
       // typedef ::flann::Index<Dist> FLANNIndex;
       // typedef nanoflann::Index<Dist> FLANNIndex;
@@ -259,7 +296,7 @@ namespace pcl
       getName () const { return ("KdTreeNANOFLANN"); }
 
       /** \brief A FLANN index object. */
-      boost::shared_ptr<FLANNIndex> flann_index_;
+      boost::shared_ptr<NANOFLANNIndex> flann_index_;
 
       /** \brief Internal pointer to data. */
       boost::shared_array<float> cloud_;

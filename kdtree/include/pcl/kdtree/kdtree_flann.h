@@ -103,7 +103,7 @@ namespace pcl
 
       /** \brief Copy operator
         * \param[in] k the tree to copy into this
-        */ 
+        */
       inline KdTreeFLANN<PointT, Dist>&
       operator = (const KdTreeFLANN<PointT, Dist>& k)
       {

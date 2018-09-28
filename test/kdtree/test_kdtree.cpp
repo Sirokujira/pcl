@@ -334,6 +334,7 @@ TEST (PCL, KdTreeFLANN_32_vs_64_bit)
 TEST (PCL, KdTreeNANOFLANN_radiusSearch)
 {
   KdTreeNANOFLANN<MyPoint> kdtree;
+  // printf("setInputCloud(nano).\n");
   kdtree.setInputCloud (cloud.makeShared ());
   MyPoint test_point(0.0f, 0.0f, 0.0f);
   double max_dist = 0.15;
@@ -343,7 +344,9 @@ TEST (PCL, KdTreeNANOFLANN_radiusSearch)
       brute_force_result.insert(i);
   vector<int> k_indices;
   vector<float> k_distances;
+  printf("radiusSearch(nano) - enter.\n");
   kdtree.radiusSearch (test_point, max_dist, k_indices, k_distances, 100);
+  printf("radiusSearch(nano) - exit.\n");
   
   //cout << k_indices.size()<<"=="<<brute_force_result.size()<<"?\n";
   
@@ -403,6 +406,7 @@ TEST (PCL, KdTreeNANOFLANN_radiusSearch)
 TEST (PCL, KdTreeNANOFLANN_nearestKSearch)
 {
   KdTreeNANOFLANN<MyPoint> kdtree;
+  // printf("setInputCloud(nano).\n");
   kdtree.setInputCloud (cloud.makeShared ());
   MyPoint test_point (0.01f, 0.01f, 0.01f);
   unsigned int no_of_neighbors = 20;
@@ -424,7 +428,10 @@ TEST (PCL, KdTreeNANOFLANN_nearestKSearch)
   k_indices.resize (no_of_neighbors);
   vector<float> k_distances;
   k_distances.resize (no_of_neighbors);
+  printf("nearestKSearch(nano) - enter.\n");
   kdtree.nearestKSearch (test_point, no_of_neighbors, k_indices, k_distances);
+  printf("nearestKSearch(nano) - exit.\n");
+
   //if (k_indices.size() != no_of_neighbors)  cerr << "Found "<<k_indices.size()<<" instead of "<<no_of_neighbors<<" neighbors.\n";
   EXPECT_EQ (k_indices.size (), no_of_neighbors);
 

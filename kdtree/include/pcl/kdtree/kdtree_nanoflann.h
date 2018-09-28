@@ -47,21 +47,6 @@
 #include <boost/shared_array.hpp>
 
 
-  /*
-  // This is an exampleof a custom data set class
-  template <typename T> 
-  struct PointCloud 
-  { 
-      typedef T coord_t; //!< The type of each coordinate 
-      struct Point 
-      { 
-          T  x,y,z; 
-      }; 
-
-      std::vector<Point>  pts; 
-  }; // end of PointCloud 
-  */
-
 namespace pcl
 {
 
@@ -275,14 +260,14 @@ namespace pcl
       void 
       cleanup ();
 
-      /** \brief Converts a PointCloud to the internal FLANN point array representation. Returns the number
+      /** \brief Converts a PointCloud to the internal NANOFLANN point array representation. Returns the number
         * of points.
         * \param cloud the PointCloud 
         */
       void 
       convertCloudToArray (const PointCloud &cloud);
 
-      /** \brief Converts a PointCloud with a given set of indices to the internal FLANN point array
+      /** \brief Converts a PointCloud with a given set of indices to the internal NANOFLANN point array
         * representation. Returns the number of points.
         * \param[in] cloud the PointCloud data
         * \param[in] indices the point cloud indices

@@ -132,9 +132,9 @@ pcl::KdTreeNANOFLANN<PointT>::setInputCloud (const PointCloudConstPtr &cloud, co
   cloud_pt.pts.resize(N);
   for (size_t i = 0; i < N;i++) 
   {
-    cloud_pt.pts[i].x = array[i*3 + 0];
-    cloud_pt.pts[i].y = array[i*3 + 1];
-    cloud_pt.pts[i].z = array[i*3 + 2];
+    cloud_pt.pts[i].x = array[i * 3 + 0];
+    cloud_pt.pts[i].y = array[i * 3 + 1];
+    cloud_pt.pts[i].z = array[i * 3 + 2];
   }
 
   // const PC2KD pc2kd(cloud_.get()); // The adaptor
@@ -162,13 +162,12 @@ pcl::KdTreeNANOFLANN<PointT>::nearestKSearch (const PointT &point, int k,
   std::vector<float> query (dim_);
   point_representation_->vectorize (static_cast<PointT> (point), query);
 
-
-  // float query_pt[3] = { 0.5, 0.5, 0.5 };
-  // int ret_index;
-  unsigned long long ret_index;
-  float out_dist_sqr;
+  // unsigned long long ret_index;
+  // float out_dist_sqr;
   nanoflann::KNNResultSet<float> resultSet(k);
-  resultSet.init(&ret_index, &out_dist_sqr);
+  // 32 bit?
+  // resultSet.init(&k_indices[0], &k_distances[0]);
+  resultSet.init((unsigned __int64 *)&k_indices[0], &k_distances[0]);
   flann_index_->findNeighbors(resultSet, &query[0], nanoflann::SearchParams(param_k_));
   // flann_index_->knnSearch(query_pt, indices, dists, num_results, mrpt_flann::SearchParams(10));
 
@@ -201,42 +200,40 @@ pcl::KdTreeNANOFLANN<PointT>::radiusSearch (const PointT &point, double radius, 
 
   // std::vector<std::vector<int> > indices(1);
   // std::vector<std::vector<float> > dists(1);
+  std::vector<std::pair<size_t, float> > ret_matches;
+  // convert error(size_t)
+  // std::vector<std::pair<int, float> > ret_matches;
+  // std::pair< std::vector<int>, std::vector<float> > ret_matches;
 
   // ::flann::SearchParams params (param_radius_);
+  nanoflann::SearchParams params;
   // if (max_nn == static_cast<unsigned int>(total_nr_points_))
   //   params.max_neighbors = -1;  // return all neighbors in radius
   // else
   //   params.max_neighbors = max_nn;
-  
+
+  // const float search_radius = static_cast<float>(radius * radius);
   const float search_radius = static_cast<float>(radius);
-  std::vector<std::pair<size_t, float> > ret_matches;
-  nanoflann::SearchParams params;
-  // const float query_pt[3] = { 0.5, 0.5, 0.5 };
-  const size_t nMatches = flann_index_->radiusSearch(&query[0], search_radius, ret_matches, params);
+  int neighbors_in_radius = flann_index_->radiusSearch(&query[0], search_radius, ret_matches, params);
 
-  k_indices[0] = ret_matches[0].first;
-  k_sqr_dists[0] = ret_matches[0].second;
-
-  std::cout << "radiusSearch(): radius=" << search_radius << " -> " << nMatches << " matches\n";
-  for (size_t i = 0; i < nMatches; i++)
+  // ret_matches
+  for (int i = 0; i < neighbors_in_radius; i++)
   {
-    std::cout << "idx["<< i << "]=" << ret_matches[i].first << " dist["<< i << "]=" << ret_matches[i].second << std::endl;
+    k_indices.push_back(ret_matches[i].first);
+    k_sqr_dists.push_back(ret_matches[i].second);
   }
-  std::cout << "\n";
 
   // Do mapping to original point cloud
   if (!identity_mapping_) 
   {
-    // for (int i = 0; i < neighbors_in_radius; ++i)
-    for (int i = 0; i < nMatches; ++i)
+    for (int i = 0; i < neighbors_in_radius; ++i)
     {
       int& neighbor_index = k_indices[i];
       neighbor_index = index_mapping_[neighbor_index];
     }
   }
 
-  // return (neighbors_in_radius);
-  return nMatches; //(nMatches);
+  return (neighbors_in_radius);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

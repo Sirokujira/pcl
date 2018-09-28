@@ -446,6 +446,7 @@ namespace pcl
         std::vector<int> index_mapping_;
         bool identity_mapping_;
 
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     };
   }
 }

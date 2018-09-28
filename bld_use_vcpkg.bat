@@ -42,19 +42,43 @@ set PATH=%NINJA_DIR%;%PATH%
 
 cd %~dp0
 mkdir build
-cd build
-rem cmake -G"Visual Studio 15 2017 Win64" -DBUILD_tracking=OFF ..
-
+pushd build
+rem cmake -G"Visual Studio 15 2017 Win64" ^
 rem cmake -G"%GENERATOR%" ^
 cmake -G"Ninja" ^
-        -DCMAKE_C_COMPILER=cl.exe ^
-        -DCMAKE_CXX_COMPILER=cl.exe ^
-        -DCMAKE_TOOLCHAIN_FILE=%VCPKG_DIR%\scripts\buildsystems\vcpkg.cmake ^
-        -DVCPKG_APPLOCAL_DEPS=OFF ^
-        -DPCL_BUILD_WITH_BOOST_DYNAMIC_LINKING_WIN32=ON ^
-        -DPCL_BUILD_WITH_FLANN_DYNAMIC_LINKING_WIN32=ON ^
-        -DPCL_NO_PRECOMPILE=OFF ^
-        -DBUILD_global_tests=ON ^
-        ..
+-DCMAKE_C_COMPILER=cl.exe ^
+-DCMAKE_CXX_COMPILER=cl.exe ^
+-DCMAKE_TOOLCHAIN_FILE=%VCPKG_DIR%\scripts\buildsystems\vcpkg.cmake ^
+-DVCPKG_APPLOCAL_DEPS=OFF ^
+-DBUILD_tracking=ON ^
+-DBUILD_apps=ON ^
+-DWITH_NANOFLANN=ON ^
+-DPCL_BUILD_WITH_BOOST_DYNAMIC_LINKING_WIN32=ON ^
+-DPCL_BUILD_WITH_FLANN_DYNAMIC_LINKING_WIN32=ON ^
+-DPCL_NO_PRECOMPILE=OFF ^
+-DBUILD_global_tests=ON ^
+-DBUILD_tests_2d=OFF ^
+-DBUILD_tests_common=OFF ^
+-DBUILD_tests_features=OFF ^
+-DBUILD_tests_filters=OFF ^
+-DBUILD_tests_geometry=OFF ^
+-DBUILD_tests_io=OFF ^
+rem -DBUILD_tests_kdtree=OFF ^
+-DBUILD_tests_keypoints=OFF ^
+-DBUILD_tests_octree=OFF ^
+-DBUILD_tests_outofcore=OFF ^
+-DBUILD_tests_people=OFF ^
+-DBUILD_tests_recognition=OFF ^
+-DBUILD_tests_registration=OFF ^
+-DBUILD_tests_sample_consensus=OFF ^
+rem -DBUILD_tests_search=OFF ^
+-DBUILD_tests_segmentation=OFF ^
+-DBUILD_tests_surface=OFF ^
+-DBUILD_tests_visualization=OFF ^
+rem 実行するテスト項目のみ ON に設定する
+-DBUILD_tests_kdtree=ON ^
+-DBUILD_tests_search=ON ^
+..
 cmake --build . --config Release
-ctest -C %CONFIGURATION% -V
+ctest -C Release -V
+popd

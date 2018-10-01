@@ -34,7 +34,7 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: kdtree_nanoflann.h 36261 2011-02-26 01:34:42Z mariusm $
+ * $Id: kdtree_nanoflann.h 36261 2011-02-26 01:34:42Z ------- $
  *
  */
 
@@ -123,7 +123,7 @@ namespace pcl
   template <typename T> class PointRepresentation;
 
   /** \brief KdTreeNANOFLANN is a generic type of 3D spatial locator using kD-tree structures. 
-    * The class is making use of the FLANN (Fast Library for Approximate Nearest Neighbor) project  by jlblancoc.
+    * The class is making use of the FLANN (Fast Library for Approximate Nearest Neighbor) project by jlblancoc.
     * 
     * \author 
     * \ingroup kdtree 
@@ -148,6 +148,7 @@ namespace pcl
 
       // typedef PointCloudAdaptor<pcl::PointCloud<PointT>> PC2KD;
       typedef PointCloudAdaptor<SearchPointCloud<float>> PC2KD;
+      // typedef SearchPointCloud<float> PC2KD;
       typedef nanoflann::KDTreeSingleIndexAdaptor<
         nanoflann::L2_Simple_Adaptor<float, PC2KD>,
         PC2KD,
@@ -303,6 +304,8 @@ namespace pcl
 
       /** \brief The KdTree search parameters for radius search. */
       nanoflann::SearchParams param_radius_;
+
+      SearchPointCloud<float> cloud_pt;
   };
 }
 

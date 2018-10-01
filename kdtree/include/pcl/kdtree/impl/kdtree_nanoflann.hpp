@@ -124,7 +124,7 @@ pcl::KdTreeNANOFLANN<PointT>::setInputCloud (const PointCloudConstPtr &cloud, co
   }
 
   // from float* to SearchPointCloud<float>
-  SearchPointCloud<float> cloud_pt;
+  // SearchPointCloud<float> cloud_pt;
   float* array = cloud_.get();
   // Generate points: 
   // generateRandomPointCloud(cloud, N);
@@ -138,11 +138,11 @@ pcl::KdTreeNANOFLANN<PointT>::setInputCloud (const PointCloudConstPtr &cloud, co
   }
 
   // const PC2KD pc2kd(cloud_.get()); // The adaptor
-  const PC2KD pc2kd(cloud_pt); // The adaptor
+  // const PC2KD pc2kd(cloud_pt); // The adaptor
 
   // flann_index_ = new NANOFLANNIndex(3, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15));
-  flann_index_.reset(new NANOFLANNIndex(3, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15)));
-  flann_index_->buildIndex();
+  // flann_index_.reset(new NANOFLANNIndex(dim_, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15)));
+  // flann_index_->buildIndex();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -162,14 +162,27 @@ pcl::KdTreeNANOFLANN<PointT>::nearestKSearch (const PointT &point, int k,
   std::vector<float> query (dim_);
   point_representation_->vectorize (static_cast<PointT> (point), query);
 
+  std::cout << "nearestKSearch start" << std::endl;
+
+  const PC2KD pc2kd(cloud_pt); // The adaptor
+  // flann_index_ = new NANOFLANNIndex(3, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15));
+  // flann_index_.reset(new NANOFLANNIndex(dim_, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15)));
+  // flann_index_->buildIndex();
+  NANOFLANNIndex flann_index2_(3, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15));
+  flann_index2_.buildIndex();
+
   // unsigned long long ret_index;
   // float out_dist_sqr;
   nanoflann::KNNResultSet<float> resultSet(k);
   // 32 bit?
   // resultSet.init(&k_indices[0], &k_distances[0]);
+
   resultSet.init((unsigned __int64 *)&k_indices[0], &k_distances[0]);
-  flann_index_->findNeighbors(resultSet, &query[0], nanoflann::SearchParams(param_k_));
+  // flann_index_->findNeighbors(resultSet, &query[0], nanoflann::SearchParams(param_k_));
   // flann_index_->knnSearch(query_pt, indices, dists, num_results, mrpt_flann::SearchParams(10));
+  flann_index2_.findNeighbors(resultSet, &query[0], nanoflann::SearchParams(param_k_));
+
+  std::cout << "nearestKSearch end" << std::endl;
 
   // Do mapping to original point cloud
   if (!identity_mapping_) 
@@ -212,9 +225,29 @@ pcl::KdTreeNANOFLANN<PointT>::radiusSearch (const PointT &point, double radius, 
   // else
   //   params.max_neighbors = max_nn;
 
-  // const float search_radius = static_cast<float>(radius * radius);
-  const float search_radius = static_cast<float>(radius);
-  int neighbors_in_radius = flann_index_->radiusSearch(&query[0], search_radius, ret_matches, params);
+  const PC2KD pc2kd(cloud_pt); // The adaptor
+  // flann_index_.reset(new NANOFLANNIndex(dim_, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15)));
+  // flann_index_->buildIndex();
+  NANOFLANNIndex flann_index2_(dim_, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15));
+  flann_index2_.buildIndex();
+
+  // std::cout << "radiusSearch start" << std::endl;
+  // std::cout << "total_nr_points_ : " << total_nr_points_ << std::endl;
+  // std::cout << "max_nn : " << max_nn << std::endl;
+  // std::cout << "dim_ : " << dim_ << std::endl;
+  // std::cout << cloud_pt.kdtree_get_point_count() << std::endl;
+
+  // std::cout << query[0] << "," << query[1] << "," << query[2] << << std::endl;
+  const float search_radius = static_cast<float>(radius * radius);
+  // const float search_radius = static_cast<float>(radius);
+
+  // RadiusResultSet<float, size_t> resultSet(search_radius, ret_matches);
+
+  // int neighbors_in_radius = flann_index_->radiusSearch(&query[0], search_radius, ret_matches, params);
+  int neighbors_in_radius = flann_index2_.radiusSearch(&query[0], search_radius, ret_matches, params);
+  // int neighbors_in_radius = flann_index2_.radiusSearch(resultSet, &query[0], params);
+
+  // std::cout << "radiusSearch end" << std::endl;
 
   // ret_matches
   for (int i = 0; i < neighbors_in_radius; i++)

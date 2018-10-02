@@ -1,7 +1,9 @@
 #!/bin/bash
-mkdir build && cd build
+mkdir build
+cd build
 
 set -ex
+export NANOFLANN_ROOT=/usr/local/include
 
 cmake \
   -DCMAKE_INSTALL_PREFIX=$PREFIX \

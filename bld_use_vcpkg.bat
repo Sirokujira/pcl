@@ -3,6 +3,7 @@ set PLATFORM=x64
 set NINJA_DIR=E:\mytools
 set GENERATOR=Ninja
 
+rem before Install VC2017++(not Console?)
 rem cd %VCPKG_DIR%
 rem git pull
 rem echo.set(VCPKG_BUILD_TYPE release)>> %VCPKG_DIR%\triplets\%PLATFORM%-windows.cmake

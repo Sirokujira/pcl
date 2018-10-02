@@ -14,5 +14,10 @@ if (build)
                   FILES test_kdtree.cpp
                   LINK_WITH pcl_gtest pcl_kdtree pcl_io pcl_common
                   ARGUMENTS "${PCL_SOURCE_DIR}/test/sac_plane_test.pcd" "${PCL_SOURCE_DIR}/test/kdtree/kdtree_unit_test_results.xml")
+
+    PCL_ADD_TEST (kdtree_kdtree2 test_kdtree2
+                  FILES test_kdtree2.cpp
+                  LINK_WITH pcl_gtest pcl_kdtree pcl_io pcl_common
+                  ARGUMENTS "${PCL_SOURCE_DIR}/test/sac_plane_test.pcd" "${PCL_SOURCE_DIR}/test/kdtree/kdtree_unit_test_results.xml")
   endif (BUILD_io)
 endif (build)

@@ -166,6 +166,8 @@ namespace pcl
       using Search<PointT>::sorted_results_;
 
       public:
+    	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
         typedef boost::shared_ptr<NanoFlannSearch<PointT> > Ptr;
         typedef boost::shared_ptr<const NanoFlannSearch<PointT> > ConstPtr;
 
@@ -180,11 +182,13 @@ namespace pcl
         // typedef boost::shared_ptr<const flann::Matrix <float> > MatrixConstPtr;
         // 代替えとして
         // typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-        typedef Eigen::MatrixXf Matrix;
-        typedef boost::shared_ptr<Eigen::MatrixXf> MatrixPtr;
-        typedef boost::shared_ptr<const Eigen::MatrixXf> MatrixConstPtr;
-    	// 初期化時のダミー用変数
-		float* init_dummy_data;
+        // typedef Eigen::MatrixXf Matrix;
+        // typedef boost::shared_ptr<Eigen::MatrixXf> MatrixPtr;
+        // typedef boost::shared_ptr<const Eigen::MatrixXf> MatrixConstPtr;
+    	typedef Eigen::MatrixXf* MatrixPtr;
+        typedef const Eigen::MatrixXf* MatrixConstPtr;
+        // 初期化時のダミー用変数
+        float* init_dummy_data;
 
         // 索引の作成?
         // 代替えチェック?(必要か確認)
@@ -214,6 +218,8 @@ namespace pcl
         class NanoFlannIndexCreator
         {
           public:
+        	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
           /** \brief Create a NanoFLANN Index from the input data.
             * \param[in] data The NanoFLANN matrix containing the input.
             * \return The NanoFLANN index.
@@ -445,8 +451,6 @@ namespace pcl
         // ???
         std::vector<int> index_mapping_;
         bool identity_mapping_;
-
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     };
   }
 }

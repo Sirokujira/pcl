@@ -78,7 +78,7 @@ init ()
 /* Test for NanoFlannSearch nearestKSearch */
 TEST (PCL, NanoFlannSearch_nearestKSearch)
 {
-  pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> ();
+  pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
   NanoFlannSearch->setInputCloud (cloud.makeShared ());
   PointXYZ test_point (0.01f, 0.01f, 0.01f);
   unsigned int no_of_neighbors = 20;
@@ -121,7 +121,7 @@ TEST (PCL, NanoFlannSearch_nearestKSearch)
 
   ScopeTime scopeTime ("NANOFLANN nearestKSearch");
   {
-    pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ>();
+    pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ>(new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
     //NanoFlannSearch->initSearchDS ();
     NanoFlannSearch->setInputCloud (cloud_big.makeShared ());
     for (size_t i = 0; i < cloud_big.points.size (); ++i)
@@ -135,7 +135,7 @@ TEST (PCL, NanoFlannSearch_differentPointT)
 
   unsigned int no_of_neighbors = 20;
 
-  pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> ();
+  pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
   //NanoFlannSearch->initSearchDS ();
   NanoFlannSearch->setInputCloud (cloud_big.makeShared ());
 
@@ -182,7 +182,7 @@ TEST (PCL, NanoFlannSearch_multipointKnnSearch)
   unsigned int no_of_neighbors = 20;
 
 
-  pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> ();
+  pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
   //NanoFlannSearch->initSearchDS ();
   NanoFlannSearch->setInputCloud (cloud_big.makeShared ());
 
@@ -215,7 +215,7 @@ TEST (PCL, NanoFlannSearch_knnByIndex)
   unsigned int no_of_neighbors = 3;
 
 
-  pcl::search::Search<PointXYZ>* nanoflann_search = new pcl::search::NanoFlannSearch<PointXYZ> ();
+  pcl::search::Search<PointXYZ>* nanoflann_search = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
   //NanoFlannSearch->initSearchDS ();
   nanoflann_search->setInputCloud (cloud_big.makeShared ());
 
@@ -269,7 +269,7 @@ TEST (PCL, NanoFlannSearch_compareToKdTreeNanoFlann)
   PointCloud<PointXYZ>::Ptr pc = cloud_big.makeShared();
   {
     ScopeTime scopeTime ("NANOFLANN build");
-    nanoflann_search = new pcl::search::NanoFlannSearch<PointXYZ> ();
+    nanoflann_search = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
     nanoflann_search->setInputCloud (pc);
   }
 
@@ -374,7 +374,7 @@ main (int argc, char** argv)
   init ();
 
   // Testing using explicit instantiation of inherited class
-  pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> ();
+  pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
   NanoFlannSearch->setInputCloud (cloud.makeShared ());
 
   return (RUN_ALL_TESTS ());

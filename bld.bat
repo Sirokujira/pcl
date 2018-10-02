@@ -1,12 +1,14 @@
 set BOOST_ROOT=%PCL_ROOT%\3rdParty\Boost
 set FLANN_ROOT=%PCL_ROOT%\3rdParty\FLANN
 set EIGEN_ROOT=%PCL_ROOT%\3rdParty\Eigen\eigen3
+set Eigen3_DIR=%PCL_ROOT%\3rdParty\Eigen\eigen3
 set QHULL_ROOT=%PCL_ROOT%\3rdParty\Qhull
 set VTK_DIR=%PCL_ROOT%\3rdParty\VTK
 rem add custom module
 set NANOFLANN_ROOT=E:\nanoflann
 
-rem call 
+rem Test
+rem set Path=%BOOST_ROOT%\lib;%FLANN_ROOT%\bin;%QHULL_ROOT%\bin;%VTK_DIR%\bin;%Path%
 
 cd %~dp0
 mkdir build
@@ -14,10 +16,10 @@ pushd build
 
 rem 実行するテスト項目のみ ON に設定する
 rem 64 bit
-rem cmake -G"Ninja" ^
-cmake -G"Visual Studio 15 2017 Win64" ^
-rem -DCMAKE_C_COMPILER=cl.exe ^
-rem -DCMAKE_CXX_COMPILER=cl.exe ^
+cmake -G"Ninja" ^
+-DCMAKE_C_COMPILER=cl.exe ^
+-DCMAKE_CXX_COMPILER=cl.exe ^
+rem cmake -G"Visual Studio 15 2017 Win64" ^
 -DBUILD_tracking=OFF ^
 -DBUILD_apps=ON ^
 -DWITH_NANOFLANN=ON ^

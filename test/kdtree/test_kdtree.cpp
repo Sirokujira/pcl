@@ -41,7 +41,6 @@
 #include <map>
 #include <pcl/common/time.h>
 #include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/kdtree/kdtree_nanoflann.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/common/distances.h>
@@ -67,7 +66,6 @@ PointCloud<MyPoint> cloud, cloud_big;
 
 // Include the implementation so that KdTree<MyPoint> works
 #include <pcl/kdtree/impl/kdtree_flann.hpp>
-#include <pcl/kdtree/impl/kdtree_nanoflann.hpp>
 
 void 
 init ()

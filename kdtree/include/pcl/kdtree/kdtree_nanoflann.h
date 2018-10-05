@@ -148,7 +148,6 @@ namespace pcl
 
       // typedef PointCloudAdaptor<pcl::PointCloud<PointT>> PC2KD;
       typedef PointCloudAdaptor<SearchPointCloud<float>> PC2KD;
-      // typedef SearchPointCloud<float> PC2KD;
       typedef nanoflann::KDTreeSingleIndexAdaptor<
         nanoflann::L2_Simple_Adaptor<float, PC2KD>,
         PC2KD,

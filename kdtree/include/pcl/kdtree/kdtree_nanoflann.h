@@ -147,7 +147,8 @@ namespace pcl
       typedef boost::shared_ptr<const std::vector<int> > IndicesConstPtr;
 
       // typedef PointCloudAdaptor<pcl::PointCloud<PointT>> PC2KD;
-      typedef PointCloudAdaptor<SearchPointCloud<float>> PC2KD;
+      // typedef PointCloudAdaptor<SearchPointCloud<float>> PC2KD;
+  	  typedef SearchPointCloud<float> PC2KD;
       typedef nanoflann::KDTreeSingleIndexAdaptor<
         nanoflann::L2_Simple_Adaptor<float, PC2KD>,
         PC2KD,
@@ -180,7 +181,9 @@ namespace pcl
       operator = (const KdTreeNANOFLANN<PointT>& k)
       {
         KdTree<PointT>::operator=(k);
-        flann_index_ = k.flann_index_;
+        nanoflann_index_ = k.nanoflann_index_;
+        // nanoflann_index_(std::move(k.nanoflann_index_));
+        // nanoflann_index_ = std::move(k.nanoflann_index_);
         cloud_ = k.cloud_;
         index_mapping_ = k.index_mapping_;
         identity_mapping_ = k.identity_mapping_;
@@ -281,7 +284,8 @@ namespace pcl
       getName () const { return ("KdTreeNANOFLANN"); }
 
       /** \brief A FLANN index object. */
-      boost::shared_ptr<NANOFLANNIndex> flann_index_;
+      boost::shared_ptr<NANOFLANNIndex> nanoflann_index_;
+      // std::unique_ptr<NANOFLANNIndex> nanoflann_index_;
 
       /** \brief Internal pointer to data. */
       boost::shared_array<float> cloud_;
@@ -304,6 +308,7 @@ namespace pcl
       /** \brief The KdTree search parameters for radius search. */
       nanoflann::SearchParams param_radius_;
 
+      // std::unique_ptr< SearchPointCloud<float> > cloud_pt;
       SearchPointCloud<float> cloud_pt;
   };
 }

@@ -88,7 +88,6 @@ init ()
                                          static_cast<float> (1024 * rand () / (RAND_MAX + 1.0))));
 }
 
-/// NANOFLANN
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 TEST (PCL, KdTreeNANOFLANN_radiusSearch)
 {
@@ -133,7 +132,7 @@ TEST (PCL, KdTreeNANOFLANN_radiusSearch)
         kdtree.radiusSearch (cloud_big.points[i], 0.1, k_indices, k_distances);
     }
   }
-
+  
   {
     KdTreeNANOFLANN<MyPoint> kdtree;
     kdtree.setInputCloud (cloud_big.makeShared ());
@@ -157,6 +156,7 @@ TEST (PCL, KdTreeNANOFLANN_radiusSearch)
     }
   }
 }
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 TEST (PCL, KdTreeNANOFLANN_nearestKSearch)
 {

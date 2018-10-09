@@ -52,6 +52,7 @@ template <typename PointT>
 pcl::KdTreeNANOFLANN<PointT>::KdTreeNANOFLANN (bool sorted)
   : pcl::KdTree<PointT> (sorted)
   , nanoflann_index_ (), cloud_ ()
+  , maxLeaf(15)
   , index_mapping_ (), identity_mapping_ (false)
   , dim_ (0), total_nr_points_ (0)
   , param_k_ (nanoflann::SearchParams (-1 , epsilon_))
@@ -64,6 +65,7 @@ template <typename PointT>
 pcl::KdTreeNANOFLANN<PointT>::KdTreeNANOFLANN (const KdTreeNANOFLANN<PointT> &k) 
   : pcl::KdTree<PointT> (false)
   , nanoflann_index_ (), cloud_ ()
+  , maxLeaf(15)
   , index_mapping_ (), identity_mapping_ (false)
   , dim_ (0), total_nr_points_ (0)
   , param_k_ (nanoflann::SearchParams (-1 , epsilon_))
@@ -123,29 +125,40 @@ pcl::KdTreeNANOFLANN<PointT>::setInputCloud (const PointCloudConstPtr &cloud, co
     return;
   }
 
+  // old : 
   // from float* to SearchPointCloud<float>
   // float* array = cloud_.get();
   size_t N = index_mapping_.size();
-  // SearchPointCloud<float> cloud_pt;
-  cloud_pt.pts.resize(N);
-  for (size_t i = 0; i < N;i++) 
+  // cloud_pt.pts.resize(N);
+  // for (size_t i = 0; i < N;i++) 
+  // {
+  //   // cloud_pt.pts[i].x = array[i * 3 + 0];
+  //   // cloud_pt.pts[i].y = array[i * 3 + 1];
+  //   // cloud_pt.pts[i].z = array[i * 3 + 2];
+  //   cloud_pt.pts[i].x = cloud_[i * dim_ + 0];
+  //   cloud_pt.pts[i].y = cloud_[i * dim_ + 1];
+  //   cloud_pt.pts[i].z = cloud_[i * dim_ + 2];
+  // }
+  cloud_pt.resize(N);
+  for (size_t i = 0; i < N; i++)
   {
-    // cloud_pt.pts[i].x = array[i * 3 + 0];
-    // cloud_pt.pts[i].y = array[i * 3 + 1];
-    // cloud_pt.pts[i].z = array[i * 3 + 2];
-    cloud_pt.pts[i].x = cloud_[i * 3 + 0];
-    cloud_pt.pts[i].y = cloud_[i * 3 + 1];
-    cloud_pt.pts[i].z = cloud_[i * 3 + 2];
+    cloud_pt[i].resize(dim_);
+    for (size_t d = 0; d < dim_; d++)
+        cloud_pt[i][d] = cloud_[i * dim_ + d];
   }
 
+  // old : 
   // const PC2KD pc2kd(cloud_pt); // The adaptor
-
   // boost::shared
-  // nanoflann_index_.reset(new NANOFLANNIndex(dim_, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15)));
-  nanoflann_index_.reset(new NANOFLANNIndex(dim_, cloud_pt, nanoflann::KDTreeSingleIndexAdaptorParams(15)));
+  // nanoflann_index_.reset(new NANOFLANNIndex(dim_, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(maxLeaf)));
+  // nanoflann_index_.reset(new NANOFLANNIndex(dim_, cloud_pt, nanoflann::KDTreeSingleIndexAdaptorParams(maxLeaf)));
   // std::unique_ptr
-  // nanoflann_index_(new NANOFLANNIndex(dim_, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15)));
-  nanoflann_index_->buildIndex();
+  // nanoflann_index_(new NANOFLANNIndex(dim_, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(maxLeaf)));
+  // nanoflann_index_->buildIndex();
+
+  // new : 
+  nanoflann_index_.reset(new NANOFLANNIndex(dim_, cloud_pt, maxLeaf));
+  nanoflann_index_->index->buildIndex();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -159,8 +172,8 @@ pcl::KdTreeNANOFLANN<PointT>::nearestKSearch (const PointT &point, int k,
   if (k > total_nr_points_)
     k = total_nr_points_;
 
-  // std::vector<size_t>   ret_index(k);
-  // std::vector<float> out_dist_sqr(k);
+  std::vector<size_t>   ret_index(k);
+  std::vector<float> out_dist_sqr(k);
 
   // k_indices.resize (k);
   // k_distances.resize (k);
@@ -175,45 +188,45 @@ pcl::KdTreeNANOFLANN<PointT>::nearestKSearch (const PointT &point, int k,
   //   3
   //   > my_kd_tree_t;
   // // exe ok, test ng(loop)
-  // // my_kd_tree_t flann_index3_(dim_, cloud_pt, nanoflann::KDTreeSingleIndexAdaptorParams(15));
+  // // my_kd_tree_t flann_index3_(dim_, cloud_pt, nanoflann::KDTreeSingleIndexAdaptorParams(maxLeaf));
   // // exe ok, test ok(call nearestKSearch once)
-  // static my_kd_tree_t flann_index3_(dim_, cloud_pt, nanoflann::KDTreeSingleIndexAdaptorParams(15));
+  // static my_kd_tree_t flann_index3_(dim_, cloud_pt, nanoflann::KDTreeSingleIndexAdaptorParams(maxLeaf));
   // flann_index3_.buildIndex();
 
-  nanoflann::KNNResultSet<float> resultSet(k);
+  // nanoflann::KNNResultSet<float> resultSet(k);
 
   // 32 bit?
   // resultSet.init(&k_indices[0], &k_distances[0]);
   // 64 bit(size_t)
-  resultSet.init((unsigned __int64 *)&k_indices[0], &k_distances[0]);
+  // resultSet.init((unsigned __int64 *)&k_indices[0], &k_distances[0]);
   // resultSet.init(&ret_index[0], &out_dist_sqr[0]);
 
   // findNeighbors
   // nanoflann_index_->findNeighbors(resultSet, &query[0], nanoflann::SearchParams(param_k_));
-  nanoflann_index_->findNeighbors(resultSet, &query[0], nanoflann::SearchParams(15));
+  // nanoflann_index_->findNeighbors(resultSet, &query[0], nanoflann::SearchParams(maxLeaf));
   // flann_index2_.findNeighbors(resultSet, &query[0], nanoflann::SearchParams(param_k_));
 
   // knnSearch
   // return : size_t
   // OK
-  // k = nanoflann_index_->knnSearch(&query[0], k, &ret_index[0], &out_dist_sqr[0]);
+  k = nanoflann_index_->index->knnSearch(&query[0], k, &ret_index[0], &out_dist_sqr[0]);
   // OK(call once)(second call? generate SEH Exception)
   // k = flann_index3_.knnSearch(&query[0], k, &ret_index[0], &out_dist_sqr[0]);
 
-  // ret_index.resize(k);
-  // out_dist_sqr.resize(k);
-  // k_indices.resize(k);
-  // k_distances.resize(k);
+  ret_index.resize(k);
+  out_dist_sqr.resize(k);
+  k_indices.resize(k);
+  k_distances.resize(k);
   // std::cout << "NANOFLANN(idx3) - knnSearch(): k=" << k << "\n";
   // for (size_t i = 0; i < k; i++)
   //   std::cout << "idx["<< i << "]=" << ret_index[i] << " dist["<< i << "]=" << out_dist_sqr[i] << std::endl;
   // std::cout << "\n";
-  // ret_matches
-  // for (int i = 0; i < k; i++)
-  // {
-  //   k_indices[i] = ret_index[i];
-  //   k_distances[i] = out_dist_sqr[i];
-  // }
+
+  for (int i = 0; i < k; i++)
+  {
+    k_indices[i] = ret_index[i];
+    k_distances[i] = out_dist_sqr[i];
+  }
 
   // Do mapping to original point cloud
   if (!identity_mapping_) 
@@ -253,9 +266,9 @@ pcl::KdTreeNANOFLANN<PointT>::radiusSearch (const PointT &point, double radius, 
   //   params.max_neighbors = max_nn;
 
   // static const PC2KD pc2kd(cloud_pt); // The adaptor
-  // nanoflann_index_.reset(new NANOFLANNIndex(dim_, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15)));
+  // nanoflann_index_.reset(new NANOFLANNIndex(dim_, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(maxLeaf)));
   // nanoflann_index_->buildIndex();
-  // NANOFLANNIndex flann_index2_(dim_, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(15));
+  // NANOFLANNIndex flann_index2_(dim_, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams(maxLeaf));
   // flann_index2_.buildIndex();
 
   const float search_radius = static_cast<float>(radius * radius);
@@ -263,7 +276,7 @@ pcl::KdTreeNANOFLANN<PointT>::radiusSearch (const PointT &point, double radius, 
 
   nanoflann::RadiusResultSet<float, size_t> resultSet(search_radius, ret_matches);
 
-  int neighbors_in_radius = nanoflann_index_->radiusSearch(&query[0], search_radius, ret_matches, params);
+  int neighbors_in_radius = nanoflann_index_->index->radiusSearch(&query[0], search_radius, ret_matches, params);
   // int neighbors_in_radius = nanoflann_index_->radiusSearch(resultSet, &query[0], params);
   // int neighbors_in_radius = flann_index2_.radiusSearch(&query[0], search_radius, ret_matches, params);
   // int neighbors_in_radius = flann_index2_.radiusSearch(resultSet, &query[0], params);

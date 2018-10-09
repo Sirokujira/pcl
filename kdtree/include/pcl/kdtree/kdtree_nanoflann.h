@@ -57,7 +57,8 @@ namespace pcl
     *  \tparam Distance The distance metric to use: nanoflann::metric_L1, nanoflann::metric_L2, nanoflann::metric_L2_Simple, etc.
     *  \tparam IndexType The type for indices in the KD-tree index (typically, size_t of int)
     */
-  template <class VectorOfVectorsType, typename num_t = float, int DIM = -1, class Distance = nanoflann::metric_L2, typename IndexType = size_t>
+  // template <class VectorOfVectorsType, typename num_t = float, int DIM = -1, class Distance = nanoflann::metric_L2, typename IndexType = size_t>
+  template <class VectorOfVectorsType, typename num_t = float, int DIM = -1, class Distance = nanoflann::metric_L2, typename IndexType = int>
   struct KDTreeVectorOfVectorsAdaptor
   {
       typedef KDTreeVectorOfVectorsAdaptor<VectorOfVectorsType,num_t,DIM,Distance> self_t;
@@ -223,15 +224,22 @@ namespace pcl
       typedef boost::shared_ptr<std::vector<int> > IndicesPtr;
       typedef boost::shared_ptr<const std::vector<int> > IndicesConstPtr;
 
-      // typedef PointCloudAdaptor<SearchPointCloud<float>> PC2KD;
-  	  // typedef SearchPointCloud<float> PC2KD;
+#if 1
+      // old :
+      // // typedef PointCloudAdaptor<SearchPointCloud<float>> PC2KD;
+      typedef SearchPointCloud<float> PC2KD;
       // typedef nanoflann::KDTreeSingleIndexAdaptor<
       //   nanoflann::L2_Simple_Adaptor<float, PC2KD>,
-      //   PC2KD,
-      //   dim_> NANOFLANNIndex;
+      //   PC2KD, 3 /* dim_ */> NANOFLANNIndex;
+      typedef nanoflann::KDTreeSingleIndexAdaptor<
+        nanoflann::L2_Simple_Adaptor<float, PC2KD>,
+        PC2KD> NANOFLANNIndex;
+#else
+      // new :
       typedef std::vector<std::vector<float> > my_vector_of_vectors_t;
       typedef KDTreeVectorOfVectorsAdaptor<
         my_vector_of_vectors_t, float > NANOFLANNIndex;
+#endif
 
       // Boost shared pointers
       typedef boost::shared_ptr<KdTreeNANOFLANN<PointT> > Ptr;
@@ -257,8 +265,6 @@ namespace pcl
       {
         KdTree<PointT>::operator=(k);
         nanoflann_index_ = k.nanoflann_index_;
-        // nanoflann_index_(std::move(k.nanoflann_index_));
-        // nanoflann_index_ = std::move(k.nanoflann_index_);
         cloud_ = k.cloud_;
         index_mapping_ = k.index_mapping_;
         identity_mapping_ = k.identity_mapping_;
@@ -362,7 +368,6 @@ namespace pcl
 
       /** \brief A FLANN index object. */
       boost::shared_ptr<NANOFLANNIndex> nanoflann_index_;
-      // std::unique_ptr<NANOFLANNIndex> nanoflann_index_;
 
       /** \brief Internal pointer to data. */
       boost::shared_array<float> cloud_;
@@ -385,9 +390,12 @@ namespace pcl
       /** \brief The KdTree search parameters for radius search. */
       nanoflann::SearchParams param_radius_;
 
+#if 1
       // std::unique_ptr< SearchPointCloud<float> > cloud_pt;
-      // SearchPointCloud<float> cloud_pt;
+      SearchPointCloud<float> cloud_pt;
+#else
       my_vector_of_vectors_t cloud_pt;
+#endif
   };
 }
 

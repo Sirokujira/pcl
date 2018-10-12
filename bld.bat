@@ -1,7 +1,9 @@
 set BOOST_ROOT=%PCL_ROOT%\3rdParty\Boost
 set FLANN_ROOT=%PCL_ROOT%\3rdParty\FLANN
-set EIGEN_ROOT=%PCL_ROOT%\3rdParty\Eigen\eigen3
-set Eigen3_DIR=%PCL_ROOT%\3rdParty\Eigen\eigen3
+rem set EIGEN_ROOT=%PCL_ROOT%\3rdParty\Eigen\eigen3
+rem set Eigen3_DIR=%PCL_ROOT%\3rdParty\Eigen\eigen3
+set EIGEN_ROOT=E:\eigen
+set Eigen3_DIR=E:\eigen
 set QHULL_ROOT=%PCL_ROOT%\3rdParty\Qhull
 set VTK_DIR=%PCL_ROOT%\3rdParty\VTK
 rem add custom module
@@ -25,7 +27,8 @@ rem cmake -G"Visual Studio 15 2017 Win64" ^
 -DWITH_NANOFLANN=ON ^
 -DPCL_BUILD_WITH_BOOST_DYNAMIC_LINKING_WIN32=ON ^
 -DPCL_BUILD_WITH_FLANN_DYNAMIC_LINKING_WIN32=ON ^
--DPCL_NO_PRECOMPILE=OFF ^
+rem -DPCL_NO_PRECOMPILE=OFF ^
+-DPCL_NO_PRECOMPILE=ON ^
 -DBUILD_global_tests=ON ^
 -DBUILD_tests_2d=OFF ^
 -DBUILD_tests_common=OFF ^

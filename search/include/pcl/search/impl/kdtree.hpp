@@ -103,6 +103,9 @@ pcl::search::KdTree<PointT,Tree>::radiusSearch (
 }
 
 #define PCL_INSTANTIATE_KdTree(T) template class PCL_EXPORTS pcl::search::KdTree<T>;
+// #define PCL_INSTANTIATE_KdTree(T1, T2) template class PCL_EXPORTS pcl::search::KdTree<T1, T2>;
+#define PCL_INSTANTIATE_KdTree1(T) template class PCL_EXPORTS pcl::search::KdTree<T, pcl::KdTreeFLANN<T> >;
+#define PCL_INSTANTIATE_KdTree2(T) template class PCL_EXPORTS pcl::search::KdTree<T, pcl::KdTreeNANOFLANN<T> >;
 
 #endif  //#ifndef _PCL_SEARCH_KDTREE_IMPL_HPP_
 

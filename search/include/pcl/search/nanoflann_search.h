@@ -44,6 +44,10 @@
 #include <pcl/point_representation.h>
 #include <nanoflann.hpp>
 
+#include <Eigen/Dense>
+
+// #define EIGEN_STATIC_ASSERT
+#define EIGEN_NO_STATIC_ASSERT
 
 namespace pcl
 {
@@ -52,7 +56,7 @@ namespace pcl
     // And this is the "dataset to kd-tree" adaptor class: 
     template <typename Derived>
     struct PointCloudAdaptor
-    { 
+    {
       typedef typename Derived::coord_t coord_t;
     
       const Derived &obj; //!< A const ref to the data set origin
@@ -166,8 +170,6 @@ namespace pcl
       using Search<PointT>::sorted_results_;
 
       public:
-    	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
         typedef boost::shared_ptr<NanoFlannSearch<PointT> > Ptr;
         typedef boost::shared_ptr<const NanoFlannSearch<PointT> > ConstPtr;
 
@@ -180,15 +182,15 @@ namespace pcl
         // 代替えチェック(必要か確認)
         // typedef boost::shared_ptr<flann::Matrix <float> > MatrixPtr;
         // typedef boost::shared_ptr<const flann::Matrix <float> > MatrixConstPtr;
-        // 代替えとして
         // typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> Matrix;
         // typedef Eigen::MatrixXf Matrix;
+        // build NG(Eigen Initialize Error?)
         // typedef boost::shared_ptr<Eigen::MatrixXf> MatrixPtr;
         // typedef boost::shared_ptr<const Eigen::MatrixXf> MatrixConstPtr;
-    	typedef Eigen::MatrixXf* MatrixPtr;
-        typedef const Eigen::MatrixXf* MatrixConstPtr;
+        typedef Eigen::Matrix3f* MatrixPtr;
+        typedef const Eigen::Matrix3f* MatrixConstPtr;
         // 初期化時のダミー用変数
-        float* init_dummy_data;
+        // float* init_dummy_data;
 
         // 索引の作成?
         // 代替えチェック?(必要か確認)
@@ -197,14 +199,19 @@ namespace pcl
         // nanoflann 内部での treeIndex がこれにあたる？
         // typedef nanoflann::NNIndex Index;
         // typedef std::unique_ptr<nanoflann::NNIndex> IndexPtr;
-        typedef PointCloudAdaptor<SearchPointCloud<float>> PC2KD;
-        // construct a kd-tree index: 
-        // 初期値の関係から
-        // typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PC2KD>, PC2KD, 3> my_kd_tree_t;
-        typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PC2KD>, PC2KD, 3> Index;
-        typedef boost::shared_ptr< nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PC2KD>, PC2KD, 3> > IndexPtr;
-        // typedef std::unique_ptr< nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PC2KD>, PC2KD, 3> > IndexPtr;
+        // typedef PointCloudAdaptor<SearchPointCloud<float>> PC2KD;
+        typedef SearchPointCloud<float> PC2KD;
+        // typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PC2KD>, PC2KD> Index;
+        // typedef boost::shared_ptr< nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PC2KD>, PC2KD> > IndexPtr;
 
+        typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> > Index;
+        // typedef boost::shared_ptr< nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> > > IndexPtr;
+    	typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> >* IndexPtr;
+        // NG(need Set Dimension)
+        // typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, nanoflann::metric_L2> Index_L2;
+    	// typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, nanoflann::metric_L2_Simple> Index_L2_Simple;
+    	// typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, nanoflann::metric_L1> Index_L1;
+        // typedef boost::shared_ptr< nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, nanoflann::metric_L2> > IndexPtr;
 
         typedef pcl::PointRepresentation<PointT> PointRepresentation;
         typedef boost::shared_ptr<PointRepresentation> PointRepresentationPtr;
@@ -218,17 +225,20 @@ namespace pcl
         class NanoFlannIndexCreator
         {
           public:
-        	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
           /** \brief Create a NanoFLANN Index from the input data.
             * \param[in] data The NanoFLANN matrix containing the input.
             * \return The NanoFLANN index.
             */
+            // virtual IndexPtr createIndex (MatrixConstPtr data)=0;
             virtual IndexPtr createIndex (MatrixConstPtr data)=0;
 
           /** \brief destructor 
             */
             virtual ~NanoFlannIndexCreator () {}
+
+          SearchPointCloud<float> cloud_pt;
         };
         typedef boost::shared_ptr<NanoFlannIndexCreator> NanoFlannIndexCreatorPtr;
 
@@ -435,7 +445,7 @@ namespace pcl
         /** Epsilon for approximate NN search.
           */
         float eps_;
-
+        
         /** Number of checks to perform for approximate NN search using the multiple randomized tree index
          */
         int checks_;
@@ -451,6 +461,7 @@ namespace pcl
         // ???
         std::vector<int> index_mapping_;
         bool identity_mapping_;
+
     };
   }
 }

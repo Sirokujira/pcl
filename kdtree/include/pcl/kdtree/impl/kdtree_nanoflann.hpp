@@ -136,9 +136,20 @@ pcl::KdTreeNANOFLANN<PointT>::setInputCloud (const PointCloudConstPtr &cloud, co
     // cloud_pt.pts[i].x = array[i * 3 + 0];
     // cloud_pt.pts[i].y = array[i * 3 + 1];
     // cloud_pt.pts[i].z = array[i * 3 + 2];
-    cloud_pt.pts[i].x = cloud_[i * dim_ + 0];
-    cloud_pt.pts[i].y = cloud_[i * dim_ + 1];
-    cloud_pt.pts[i].z = cloud_[i * dim_ + 2];
+    // cloud_pt.pts[i].x = cloud_[i * dim_ + 0];
+    // cloud_pt.pts[i].y = cloud_[i * dim_ + 1];
+    // cloud_pt.pts[i].z = cloud_[i * dim_ + 2];
+    // init value?
+    // cloud_pt.pts[i].x = 0;
+    // cloud_pt.pts[i].y = 0;
+    // cloud_pt.pts[i].z = 0;
+    for (size_t d = 0; d < dim_; d++)
+    {
+      if (d == 0) cloud_pt.pts[i].x = cloud_[i * dim_ + 0];
+      else if (d == 1) cloud_pt.pts[i].y = cloud_[i * dim_ + 1];
+      else if (d == 2) cloud_pt.pts[i].z = cloud_[i * dim_ + 2];
+      else break;
+    }
   }
 
   // old : 
@@ -175,10 +186,11 @@ pcl::KdTreeNANOFLANN<PointT>::nearestKSearch (const PointT &point, int k,
   if (k > total_nr_points_)
     k = total_nr_points_;
 
+  // knnSearch
   // std::vector<size_t>   ret_index(k);
   // std::vector<float> out_dist_sqr(k);
-  // k_indices.resize (k);
-  // k_distances.resize (k);
+  k_indices.resize (k);
+  k_distances.resize (k);
 
   std::vector<float> query (dim_);
   point_representation_->vectorize (static_cast<PointT> (point), query);
@@ -186,18 +198,29 @@ pcl::KdTreeNANOFLANN<PointT>::nearestKSearch (const PointT &point, int k,
   // nanoflann::KNNResultSet<float> resultSet(k);
   // IndexType = int
   nanoflann::KNNResultSet<float, int> resultSet(k);
-  // 32 bit?
   resultSet.init(&k_indices[0], &k_distances[0]);
-  // 64 bit(size_t)
-  // resultSet.init((unsigned __int64 *)&k_indices[0], &k_distances[0]);
-  // resultSet.init(&ret_index[0], &out_dist_sqr[0]);
 
 #if 1
-  // findNeighbors
   // old : 
+  // findNeighbors
   nanoflann_index_->findNeighbors(resultSet, &query[0], nanoflann::SearchParams(param_k_));
+
+  // knnSearch
+  // return : size_t
+  // k = nanoflann_index_->knnSearch(&query[0], k, &ret_index[0], &out_dist_sqr[0]);
+  // ret_index.resize(k);
+  // out_dist_sqr.resize(k);
+  // k_indices.resize(k);
+  // k_distances.resize(k);
+  // for (int i = 0; i < k; i++)
+  // {
+  //   k_indices[i] = ret_index[i];
+  //   k_distances[i] = out_dist_sqr[i];
+  // }
+
 #else
   // new : 
+  // findNeighbors
   nanoflann_index_->index->findNeighbors(resultSet, &query[0], nanoflann::SearchParams(param_k_));
 
   // knnSearch
@@ -251,6 +274,9 @@ pcl::KdTreeNANOFLANN<PointT>::radiusSearch (const PointT &point, double radius, 
   // std::vector<std::vector<int> > indices(1);
   // std::vector<std::vector<float> > dists(1);
   std::vector<std::pair<size_t, float> > ret_matches;
+  // ret_matches.push_back(std::make_pair(&k_indices, &k_sqr_dists));
+  // ret_matches
+  // auto ret_matches = std::vector<std::make_pair>(&k_indices, &k_sqr_dists);
 
   nanoflann::SearchParams params;
   // if (max_nn == static_cast<unsigned int>(total_nr_points_))
@@ -261,24 +287,31 @@ pcl::KdTreeNANOFLANN<PointT>::radiusSearch (const PointT &point, double radius, 
   const float search_radius = static_cast<float>(radius * radius);
   // const float search_radius = static_cast<float>(radius);
 
-  // nanoflann::RadiusResultSet<float> resultSet(search_radius, ret_matches);
+  nanoflann::RadiusResultSet<float> resultSet(search_radius, ret_matches);
 
 #if 1
   // old : 
+  // not use ResultSet
   int neighbors_in_radius = nanoflann_index_->radiusSearch(&query[0], search_radius, ret_matches, params);
+  // use ResultSet
+  // int neighbors_in_radius = nanoflann_index_->findNeighbors(resultSet, &query[0], params);
 #else
   // new : 
   // not use ResultSet
   int neighbors_in_radius = nanoflann_index_->index->radiusSearch(&query[0], search_radius, ret_matches, params);
-  // use ResultSet?(Error)
-  // int neighbors_in_radius = nanoflann_index_->index->radiusSearch(resultSet, &query[0], params);
+  // use ResultSet
+  // int neighbors_in_radius = nanoflann_index_->index->findNeighbors(resultSet, &query[0], params);
 #endif
 
   // ret_matches
+  // k_indices.resize(neighbors_in_radius);
+  // k_sqr_dists.resize(neighbors_in_radius);
   for (int i = 0; i < neighbors_in_radius; i++)
   {
     k_indices.push_back(ret_matches[i].first);
     k_sqr_dists.push_back(ret_matches[i].second);
+    // k_indices[i] = ret_matches[i].first;
+    // k_sqr_dists[i] = ret_matches[i].second;
   }
 
   // Do mapping to original point cloud

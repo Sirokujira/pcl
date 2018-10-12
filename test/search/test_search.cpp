@@ -109,7 +109,10 @@ std::vector<int> organized_input_indices;
 pcl::search::BruteForce<pcl::PointXYZ> brute_force;
 
 /** \brief instance of KDTree search method to be tested*/
-pcl::search::KdTree<pcl::PointXYZ> KDTree;
+pcl::search::KdTree<pcl::PointXYZ, pcl::KdTreeFLANN<PointXYZ> > KDTree;
+
+/** \brief instance of KDTree search method to be tested(nanoflann)*/
+pcl::search::KdTree<pcl::PointXYZ, pcl::KdTreeNANOFLANN<PointXYZ> > KDTreeNanoFlann;
 
 /** \brief instance of Octree search method to be tested*/
 pcl::search::Octree<pcl::PointXYZ> octree_search (0.1);
@@ -620,15 +623,18 @@ main (int argc, char** argv)
   
   brute_force.setSortedResults (true);
   KDTree.setSortedResults (true);
+  KDTreeNanoFlann.setSortedResults (true);
   octree_search.setSortedResults (true);
   organized.setSortedResults (true);
   
   unorganized_search_methods.push_back (&brute_force);
   unorganized_search_methods.push_back (&KDTree);
+  // unorganized_search_methods.push_back (&KDTreeNanoFlann);
   unorganized_search_methods.push_back (&octree_search);
   
   organized_search_methods.push_back (&brute_force);
   organized_search_methods.push_back (&KDTree);
+  // organized_search_methods.push_back (&KDTreeNanoFlann);
   organized_search_methods.push_back (&octree_search);
   organized_search_methods.push_back (&organized);
   

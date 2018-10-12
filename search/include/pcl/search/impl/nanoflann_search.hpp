@@ -48,24 +48,43 @@ template <typename PointT>
 typename pcl::search::NanoFlannSearch<PointT>::IndexPtr
 pcl::search::NanoFlannSearch<PointT>::KdTreeIndexCreator::createIndex (MatrixConstPtr data)
 {
-  std::vector<float> vec(data->size());
-  Eigen::Map<Eigen::MatrixXf>(vec.data(), data->rows(), data->cols()) = *data;
+  // std::vector<float> vec(data->size());
+  // return (IndexPtr (new Index(data->cols(), data.data(), nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
 
-  SearchPointCloud<float> cloud_pt;
+  std::vector<float> vec(data->size());
+  size_t N = data->rows();
+  size_t dim = data->cols();
+  // const Eigen::MatrixXf mat(reinterpret_cast<const float&>(vec.data()), N, dim);
+  // Eigen::MatrixXf mat (reinterpret_cast<const float&> (data->data()), N, dim);
+  // Eigen::Map<Eigen::MatrixXf> mat(vec.data(), N, dim);
+  // const Eigen::MatrixXf mat(vec.data(), N, dim);
+  Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> mat(N, dim);
+
+  /*
+  // SearchPointCloud<float> cloud_pt;
   size_t N = data->rows();
   size_t dim = data->cols();
   cloud_pt.pts.resize(N);
   for (size_t i = 0; i < N;i++) 
   {
-    cloud_pt.pts[i].x = vec[i * dim + 0];
-    cloud_pt.pts[i].y = vec[i * dim + 1];
-    cloud_pt.pts[i].z = vec[i * dim + 2];
+    for (size_t d = 0; d < dim; d++)
+    {
+      if (d == 0) cloud_pt.pts[i].x = vec[i * dim + 0];
+      else if (d == 1) cloud_pt.pts[i].y = vec[i * dim + 1];
+      else if (d == 2) cloud_pt.pts[i].z = vec[i * dim + 2];
+      else break;
+    }
   }
+  */
+  // const PC2KD pc2kd(cloud_pt); // The adaptor
+  // return (IndexPtr (new Index(dim, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
 
-  const PC2KD pc2kd(cloud_pt); // The adaptor
-
-  return (IndexPtr (new Index(3, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
-  // return (IndexPtr (new Index(3, *data, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
+  // return (IndexPtr (new Index(dim, cloud_pt, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
+  // return (IndexPtr (new Index(dim, *data, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
+  return (IndexPtr (new Index(dim, std::cref(mat), max_leaf_size_)));
+  // return (IndexPtr (new Index(dim, &data[0], max_leaf_size_)));
+  // return (IndexPtr (new Index(dim, std::cref(data.get()), max_leaf_size_)));
+  // return (IndexPtr (new Index(dim, (Eigen::MatrixXf*)data.get(), max_leaf_size_)));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,23 +93,31 @@ typename pcl::search::NanoFlannSearch<PointT>::IndexPtr
 pcl::search::NanoFlannSearch<PointT>::KMeansIndexCreator::createIndex (MatrixConstPtr data)
 {
   std::vector<float> vec(data->size());
-  Eigen::Map<Eigen::MatrixXf>(vec.data(), data->rows(), data->cols()) = *data;
-
-  SearchPointCloud<float> cloud_pt;
+  // return (IndexPtr (new Index(data->cols(), vec.data(), nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
   size_t N = data->rows();
   size_t dim = data->cols();
+  Eigen::MatrixXf mat (reinterpret_cast<const float&>(vec.data()), N, dim);
+
+  /*
+  // SearchPointCloud<float> cloud_pt;
   cloud_pt.pts.resize(N);
   for (size_t i = 0; i < N;i++) 
   {
-    cloud_pt.pts[i].x = vec[i * dim + 0];
-    cloud_pt.pts[i].y = vec[i * dim + 1];
-    cloud_pt.pts[i].z = vec[i * dim + 2];
+    for (size_t d = 0;d < dim; d++)
+    {
+      if (d == 0) cloud_pt.pts[i].x = vec[i * dim + 0];
+      else if (d == 1) cloud_pt.pts[i].y = vec[i * dim + 1];
+      else cloud_pt.pts[i].z = vec[i * dim + 2];
+    }
   }
+  */
+  // const PC2KD pc2kd(cloud_pt); // The adaptor
+  // return (IndexPtr (new Index(dim, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
 
-  const PC2KD pc2kd(cloud_pt); // The adaptor
+  // return (IndexPtr (new Index(dim, cloud_pt, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
   // return (IndexPtr (new nanoflann::KMeansIndex<FlannDistance> (*data, flann::KMeansIndexParams ())));
-  return (IndexPtr (new Index(3, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
-  // return (IndexPtr (new Index(3, *data, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
+  // return (IndexPtr (new Index(dim, *data, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
+  return (IndexPtr (new Index(dim, std::cref(mat), max_leaf_size_)));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,38 +126,41 @@ typename pcl::search::NanoFlannSearch<PointT>::IndexPtr
 pcl::search::NanoFlannSearch<PointT>::KdTreeMultiIndexCreator::createIndex (MatrixConstPtr data)
 {
   std::vector<float> vec(data->size());
-  Eigen::Map<Eigen::MatrixXf>(vec.data(), data->rows(), data->cols()) = *data;
-
-  SearchPointCloud<float> cloud_pt;
+  // return (IndexPtr (new Index(data->cols(), vec.data(), nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
   size_t N = data->rows();
   size_t dim = data->cols();
+  // Eigen::MatrixXf mat (reinterpret_cast<const float&> (vec.data()), N, dim);
+  Eigen::MatrixXf mat (reinterpret_cast<const float&> (data->data()), N, dim);
+
+  /*
   cloud_pt.pts.resize(N);
   for (size_t i = 0; i < N;i++)
   {
-    cloud_pt.pts[i].x = vec[i * dim + 0];
-    cloud_pt.pts[i].y = vec[i * dim + 1];
-    cloud_pt.pts[i].z = vec[i * dim + 2];
+    for (size_t d = 0; d < dim; d++)
+    {
+      if (d == 0) cloud_pt.pts[i].x = vec[i * dim + 0];
+      else if (d == 1) cloud_pt.pts[i].y = vec[i * dim + 1];
+      else cloud_pt.pts[i].z = vec[i * dim + 2];
+    }
   }
+  */
+  // const PC2KD pc2kd(cloud_pt); // The adaptor
+  // return (IndexPtr (new Index(dim, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
 
-  const PC2KD pc2kd(cloud_pt); // The adaptor
-
+  // return (IndexPtr (new Index(dim, cloud_pt, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
   // return (IndexPtr (new nanoflann::KDTreeIndex<FlannDistance> (*data, nanoflann::KDTreeIndexParams (trees_))));
-  return (IndexPtr (new Index(3, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
-  // return (IndexPtr (new IndexIndex(3, *data, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
+  // return (IndexPtr (new Index(dim, *data, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
+
+  return (IndexPtr (new Index(dim, std::cref(mat), max_leaf_size_)));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 template <typename PointT>
 pcl::search::NanoFlannSearch<PointT>::NanoFlannSearch(bool sorted, NanoFlannIndexCreatorPtr creator) : pcl::search::Search<PointT> ("NanoFlannSearch", sorted),
-  // index_(), creator_ (creator), input_nanoflann_( MatrixPtr(new Eigen::MatrixXf(reinterpret_cast<const float &>(init_dummy_data), 1, 1)) ), eps_ (0), checks_ (32), input_copied_for_nanoflann_ (false), point_representation_ (new DefaultPointRepresentation<PointT>),
   index_(), creator_ (creator), eps_ (0), checks_ (32), input_copied_for_nanoflann_ (false), point_representation_ (new DefaultPointRepresentation<PointT>),
   dim_ (0), index_mapping_(), identity_mapping_()
 {
   dim_ = point_representation_->getNumberOfDimensions ();
-  // input_nanoflann_ = MatrixPtr (new Eigen::MatrixXf(new float[1], 1, 1));
-  // input_nanoflann_ = MatrixPtr (new Eigen::MatrixXf(reinterpret_cast<const float&> (new float[1]), 1, 1));
-  input_nanoflann_ = MatrixPtr (new Eigen::MatrixXf(reinterpret_cast<const float&> (init_dummy_data), 1, 1));
-  
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,7 +179,8 @@ pcl::search::NanoFlannSearch<PointT>::setInputCloud (const PointCloudConstPtr& c
   indices_ = indices;
   convertInputToNanoFlannMatrix ();
   index_ = creator_->createIndex (input_nanoflann_);
-  index_->buildIndex();
+  // index_->buildIndex();
+  index_->index->buildIndex();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,18 +194,19 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (const PointT &point, int k
   if (!can_cast)
   {
     data = new float [point_representation_->getNumberOfDimensions ()];
-    point_representation_->vectorize (point,data);
+    point_representation_->vectorize (point, data);
   }
 
   float* cdata = can_cast ? const_cast<float*> (reinterpret_cast<const float*> (&point)): data;
-  // const nanoflann::Matrix<float> m (cdata ,1, point_representation_->getNumberOfDimensions ());
+  // const Eigen::MatrixXf m (cdata ,1, point_representation_->getNumberOfDimensions ());
+  const Eigen::MatrixXf m (reinterpret_cast<const float&>(cdata) ,1, point_representation_->getNumberOfDimensions ());
 
   nanoflann::SearchParams params;
   params.eps = eps_;
   params.sorted = sorted_results_;
   // p.checks = checks_;
   if (indices.size() != static_cast<unsigned int> (k))
-    indices.resize (k,-1);
+    indices.resize (k, -1);
   if (dists.size() != static_cast<unsigned int> (k))
     dists.resize (k);
 
@@ -185,13 +217,11 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (const PointT &point, int k
   // const size_t num_results = 1; 
   // size_t ret_index; 
   // PointT out_dist_sqr; 
-  // nanoflann::KNNResultSet<PointT> resultSet(num_results); 
-  // resultSet.init(&ret_index, &out_dist_sqr ); 
-  // index.findNeighbors(resultSet, &query_pt[0], nanoflann::SearchParams(10));
-  // std::cout << "knnSearch(nn="<<num_results<<"): \n"; 
-  // std::cout << "ret_index=" << ret_index << " out_dist_sqr=" << out_dist_sqr << endl; 
+  nanoflann::KNNResultSet<float, int> resultSet(k); 
+  resultSet.init(&indices[0], &dists[0]);
+  // int result = index_->findNeighbors(resultSet, &cdata[0], nanoflann::SearchParams(10));
+  int result = index_->index->findNeighbors(resultSet, &m[0], nanoflann::SearchParams(10));
 
-  int result = -1;
   delete [] data;
 
   if (!identity_mapping_)
@@ -211,7 +241,6 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (
     const PointCloud& cloud, const std::vector<int>& indices, int k, std::vector< std::vector<int> >& k_indices,
     std::vector< std::vector<float> >& k_sqr_distances) const
 {
-  std::vector<std::pair<size_t, float> > ret_matches;
   if (indices.empty ())
   {
     k_indices.resize (cloud.size ());
@@ -242,14 +271,18 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (
     // const cast is evil, but the matrix constructor won't change the data, and the
     // search won't change the matrix
     float* cdata = can_cast ? const_cast<float*> (reinterpret_cast<const float*> (&cloud[0])): data;
-    // const Eigen::MatrixXf m (cdata ,cloud.size (), dim_, can_cast ? sizeof (PointT) : dim_ * sizeof (float) );
+    // const Eigen::MatrixXf m (cdata, cloud.size (), dim_, can_cast ? sizeof (PointT) : dim_ * sizeof (float) );
+    // convert 'float *' to 'const float &'
+    const Eigen::MatrixXf m (reinterpret_cast<const float&>(cdata), cloud.size (), dim_, can_cast ? sizeof (PointT) : dim_ * sizeof (float) );
 
     nanoflann::SearchParams params;
     params.sorted = sorted_results_;
     params.eps = eps_;
     // p.checks = checks_;
-    // index_->knnSearch (m, k_indices, k_sqr_distances, k, params);
-    // index_->ret_matches
+    nanoflann::KNNResultSet<float, int> resultSet(k); 
+    resultSet.init(&k_indices[0][0], &k_sqr_distances[0][0]);
+    // index_->findNeighbors(resultSet, &m[0], params);
+    index_->index->findNeighbors(resultSet, &cdata[0], params);
 
     delete [] data;
   }
@@ -277,8 +310,9 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (
     nanoflann::SearchParams params;
     params.sorted = sorted_results_;
     params.eps = eps_;
-    // p.checks = checks_;
-    // index_->knnSearch (m, k_indices, k_sqr_distances, k, params);
+    nanoflann::KNNResultSet<float, int> resultSet(k); 
+    resultSet.init(&k_indices[0][0], &k_sqr_distances[0][0]);
+    index_->index->findNeighbors(resultSet, &m[0], params);
 
     delete[] data;
   }
@@ -325,28 +359,36 @@ pcl::search::NanoFlannSearch<PointT>::radiusSearch (
   std::vector<std::vector<size_t> > i (1);
   std::vector<std::vector<float> > d (1);
   std::vector<std::pair<size_t, float> > ret_matches;
-  // const PointT search_radius = PointT(radius, radius, radius);
-  const float search_radius = static_cast<float>(radius);
+  const float search_radius = static_cast<float>(radius * radius);
+  nanoflann::RadiusResultSet<float, size_t> resultSet(search_radius, ret_matches);
 
   std::vector<float> vec(m.size());
   Eigen::Map<Eigen::MatrixXf>(vec.data(), m.rows(), m.cols()) = m;
 
   // int result = index_->radiusSearch (m, i, d, static_cast<float> (radius * radius), params);
-  // const size_t nMatches = index_->radiusSearch(&cdata[0], search_radius, ret_matches, params);
-  const size_t nMatches = index_->radiusSearch(vec.data(), search_radius, ret_matches, params);
-  cout << "radiusSearch(): radius=" << radius << " -> " << nMatches << " matches\n";
+  // int result = index_->radiusSearch(&cdata[0], search_radius, ret_matches, params);
+  // int result = index_->radiusSearch(vec.data(), search_radius, ret_matches, params);
+  // int result = index_->findNeighbors(resultSet, vec.data(), params);
+  int result = index_->index->findNeighbors(resultSet, &m[0], params);
+  cout << "radiusSearch(): radius=" << radius << " -> " << result << " matches\n";
 
-  for (size_t i = 0; i < nMatches; i++)
-    cout << "idx["<< i << "]=" << ret_matches[i].first << " dist["<< i << "]=" << ret_matches[i].second << endl;
-
-  cout << "\n"; 
+  // for (size_t i = 0; i < result; i++)
+  //   cout << "idx["<< i << "]=" << ret_matches[i].first << " dist["<< i << "]=" << ret_matches[i].second << endl;
+  // cout << "\n"; 
 
   delete [] data;
   // indices = i [0];
   // distances = d [0];
 
-  // return result;
-  return nMatches;
+  if (!identity_mapping_)
+  {
+    for (size_t i = 0; i < indices.size (); ++i)
+    {
+      int& neighbor_index = indices [i];
+      neighbor_index = index_mapping_ [neighbor_index];
+    }
+  }
+  return result;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -357,6 +399,8 @@ void pcl::search::NanoFlannSearch<PointT>::radiusSearch (
     std::vector< std::vector<int> >& k_indices, std::vector< std::vector<float> >& k_sqr_distances, unsigned int max_nn) const
 {
   std::vector<std::pair<size_t, float> > ret_matches;
+  const float search_radius = static_cast<float>(radius * radius);
+  nanoflann::RadiusResultSet<float> resultSet(search_radius, ret_matches);
 
   if (indices.empty ()) // full point cloud + trivial copy operation = no need to do any conversion/copying to the flann matrix!
   {
@@ -390,20 +434,23 @@ void pcl::search::NanoFlannSearch<PointT>::radiusSearch (
     nanoflann::SearchParams params;
     params.sorted = sorted_results_;
     params.eps = eps_;
-    const float search_radius = static_cast<float>(radius);
 
     // Note that I initialize vec with the matrix size to begin with:
     std::vector<float> vec(m.size());
-  	Eigen::Map<Eigen::MatrixXf>(vec.data(), m.rows(), m.cols()) = m;
+    Eigen::Map<Eigen::MatrixXf>(vec.data(), m.rows(), m.cols()) = m;
 
-  	// index_->radiusSearch (m, k_indices, k_sqr_distances, static_cast<float> (radius * radius), params);
-    // const size_t nMatches = index_->radiusSearch(m, search_radius, ret_matches, params);
-  	const size_t nMatches = index_->radiusSearch(vec.data(), search_radius, ret_matches, params);
-    cout << "radiusSearch(): radius=" << radius << " -> " << nMatches << " matches\n"; 
+    // index_->radiusSearch (m, k_indices, k_sqr_distances, static_cast<float> (radius * radius), params);
+    // set Matrix
+    // size_t nMatches = index_->radiusSearch(m, search_radius, &ret_matches, params);
+    // not use ResultSet
+    // size_t nMatches = index_->index->radiusSearch(vec.data(), search_radius, &ret_matches[0], params);
+    // use ResultSet
+    size_t nMatches = index_->index->findNeighbors(resultSet, &vec.data()[0], params);
+    cout << "radiusSearch(): radius=" << radius << " -> " << nMatches << " matches\n";
 
-    for (size_t i = 0; i < nMatches; i++)
-      cout << "idx["<< i << "]=" << ret_matches[i].first << " dist["<< i << "]=" << ret_matches[i].second << endl; 
-    cout << "\n"; 
+    // for (size_t i = 0; i < nMatches; i++)
+    //   cout << "idx["<< i << "]=" << ret_matches[i].first << " dist["<< i << "]=" << ret_matches[i].second << endl; 
+    // cout << "\n"; 
 
     delete [] data;
   }
@@ -428,24 +475,26 @@ void pcl::search::NanoFlannSearch<PointT>::radiusSearch (
     }
     // const flann::Matrix<float> m (data, cloud.size (), point_representation_->getNumberOfDimensions ());
     // const Eigen::MatrixXf m (data, cloud.size (), point_representation_->getNumberOfDimensions ());
-  	const Eigen::MatrixXf m (reinterpret_cast<const float&>(data), cloud.size (), point_representation_->getNumberOfDimensions ());
+    const Eigen::MatrixXf m (reinterpret_cast<const float&>(data), cloud.size (), point_representation_->getNumberOfDimensions ());
 
     nanoflann::SearchParams params;
     params.sorted = sorted_results_;
     params.eps = eps_;
-    const float search_radius = static_cast<float>(radius);
 
-  	std::vector<float> vec(m.size());
+    std::vector<float> vec(m.size());
     Eigen::Map<Eigen::MatrixXf>(vec.data(), m.rows(), m.cols()) = m;
 
     // index_->radiusSearch (m, k_indices, k_sqr_distances, static_cast<float> (radius * radius), params);
     // const size_t nMatches = index_->radiusSearch(m, search_radius, ret_matches, params);
-  	const size_t nMatches = index_->radiusSearch(vec.data(), search_radius, ret_matches, params);
-    cout << "radiusSearch(): radius=" << search_radius << " -> " << nMatches << " matches\n"; 
-    for (size_t i = 0; i < nMatches; i++) 
-      cout << "idx["<< i << "]=" << ret_matches[i].first << " dist["<< i << "]=" << ret_matches[i].second << endl; 
+    // not use ResultSet
+    // size_t nMatches = index_->index->radiusSearch(vec.data(), search_radius, &ret_matches, params);
+    // use ResultSet
+    size_t nMatches = index_->index->findNeighbors(resultSet, vec.data(), params);
 
-    cout << "\n"; 
+    // cout << "radiusSearch(): radius=" << search_radius << " -> " << nMatches << " matches\n"; 
+    // for (size_t i = 0; i < nMatches; i++) 
+    //   cout << "idx["<< i << "]=" << ret_matches[i].first << " dist["<< i << "]=" << ret_matches[i].second << endl; 
+    // cout << "\n"; 
 
     delete[] data;
   }

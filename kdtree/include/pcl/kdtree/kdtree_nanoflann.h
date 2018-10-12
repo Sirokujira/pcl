@@ -228,12 +228,14 @@ namespace pcl
       // old :
       // // typedef PointCloudAdaptor<SearchPointCloud<float>> PC2KD;
       typedef SearchPointCloud<float> PC2KD;
+      // fix dimension
       // typedef nanoflann::KDTreeSingleIndexAdaptor<
       //   nanoflann::L2_Simple_Adaptor<float, PC2KD>,
       //   PC2KD, 3 /* dim_ */> NANOFLANNIndex;
+      // dimension=-1?
       typedef nanoflann::KDTreeSingleIndexAdaptor<
-        nanoflann::L2_Simple_Adaptor<float, PC2KD>,
-        PC2KD> NANOFLANNIndex;
+         nanoflann::L2_Simple_Adaptor<float, PC2KD>,
+         PC2KD> NANOFLANNIndex;
 #else
       // new :
       typedef std::vector<std::vector<float> > my_vector_of_vectors_t;

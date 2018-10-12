@@ -287,6 +287,46 @@ TEST (PCL, KdTreeNanoFLANN_setPointRepresentation)
   }
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+TEST (PCL, KdTreeNANOFLANN_32_vs_64_bit)
+{
+  KdTreeNANOFLANN<PointXYZ> tree;
+  tree.setInputCloud (cloud_in);
+
+  std::vector<std::vector<int> > nn_indices_vector;
+  for (size_t i = 0; i < cloud_in->size (); ++i)
+    if (isFinite ((*cloud_in)[i]))
+    {
+      std::vector<int> nn_indices;
+      std::vector<float> nn_dists;
+      tree.radiusSearch ((*cloud_in)[i], 0.02, nn_indices, nn_dists);
+
+      nn_indices_vector.push_back (nn_indices);
+    }
+
+
+
+  for (size_t vec_i = 0; vec_i < nn_indices_vector.size (); ++vec_i)
+  {
+    char str[512];
+    sprintf (str, "point_%d", int (vec_i));
+    boost::optional<boost::property_tree::ptree&> tree = xml_property_tree.get_child_optional (str);
+    if (!tree)
+      FAIL ();
+
+    int vec_size = tree.get ().get<int> ("size");
+    EXPECT_EQ (vec_size, nn_indices_vector[vec_i].size ());
+
+    for (size_t n_i = 0; n_i < nn_indices_vector[vec_i].size (); ++n_i)
+    {
+      sprintf (str, "nn_%d", int (n_i));
+      int neighbor_index = tree.get ().get<int> (str);
+      EXPECT_EQ (neighbor_index, nn_indices_vector[vec_i][n_i]);
+    }
+  }
+}
+
 /* ---[ */
 int
 main (int argc, char** argv)

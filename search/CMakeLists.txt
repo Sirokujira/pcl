@@ -24,6 +24,7 @@ if(build)
         "include/pcl/${SUBSYS_NAME}/organized.h"
         "include/pcl/${SUBSYS_NAME}/octree.h"
         "include/pcl/${SUBSYS_NAME}/flann_search.h"
+        "include/pcl/${SUBSYS_NAME}/nanoflann_search.h"
         "include/pcl/${SUBSYS_NAME}/pcl_search.h"
         )
 
@@ -31,6 +32,7 @@ if(build)
         "include/pcl/${SUBSYS_NAME}/impl/search.hpp"
         "include/pcl/${SUBSYS_NAME}/impl/kdtree.hpp"
         "include/pcl/${SUBSYS_NAME}/impl/flann_search.hpp"
+        "include/pcl/${SUBSYS_NAME}/impl/nanoflann_search.hpp"
         "include/pcl/${SUBSYS_NAME}/impl/brute_force.hpp"
         "include/pcl/${SUBSYS_NAME}/impl/organized.hpp"
         )

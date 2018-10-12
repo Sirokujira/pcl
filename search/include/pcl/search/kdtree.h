@@ -42,6 +42,7 @@
 
 #include <pcl/search/search.h>
 #include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/kdtree/kdtree_nanoflann.h>
 
 namespace pcl
 {
@@ -59,6 +60,10 @@ namespace pcl
       * \ingroup search
       */
     template<typename PointT, class Tree = pcl::KdTreeFLANN<PointT> >
+    // NG : PCL_INSTANTIATE_KdTree
+    // template<typename PointT, class Tree>
+    // OK : 
+    // template<typename PointT, class Tree = pcl::KdTreeNANOFLANN<PointT> >
     class KdTree: public Search<PointT>
     {
       public:

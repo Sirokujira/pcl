@@ -39,6 +39,8 @@
 #ifndef PCL_SEARCH_NANOFLANN_SEARCH_H_
 #define PCL_SEARCH_NANOFLANN_SEARCH_H_
 
+#include <memory>
+
 #include <pcl/search/search.h>
 #include <pcl/common/time.h>
 #include <pcl/point_representation.h>
@@ -182,13 +184,11 @@ namespace pcl
         // 代替えチェック(必要か確認)
         // typedef boost::shared_ptr<flann::Matrix <float> > MatrixPtr;
         // typedef boost::shared_ptr<const flann::Matrix <float> > MatrixConstPtr;
+        // build NG(Eigen Initialize Error?)
         // typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> Matrix;
         // typedef Eigen::MatrixXf Matrix;
-        // build NG(Eigen Initialize Error?)
-        // typedef boost::shared_ptr<Eigen::MatrixXf> MatrixPtr;
-        // typedef boost::shared_ptr<const Eigen::MatrixXf> MatrixConstPtr;
-        typedef Eigen::Matrix3f* MatrixPtr;
-        typedef const Eigen::Matrix3f* MatrixConstPtr;
+        typedef boost::shared_ptr<Eigen::MatrixXf> MatrixPtr;
+        typedef boost::shared_ptr<const Eigen::MatrixXf> MatrixConstPtr;
         // 初期化時のダミー用変数
         // float* init_dummy_data;
 
@@ -205,12 +205,14 @@ namespace pcl
         // typedef boost::shared_ptr< nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<float, PC2KD>, PC2KD> > IndexPtr;
 
         typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> > Index;
-        // typedef boost::shared_ptr< nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> > > IndexPtr;
-    	typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> >* IndexPtr;
+        typedef boost::shared_ptr<Index> IndexPtr;
+        // typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> >* IndexPtr;
+        // typedef int Index;
+        // typedef void* IndexPtr;
         // NG(need Set Dimension)
         // typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, nanoflann::metric_L2> Index_L2;
-    	// typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, nanoflann::metric_L2_Simple> Index_L2_Simple;
-    	// typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, nanoflann::metric_L1> Index_L1;
+        // typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, nanoflann::metric_L2_Simple> Index_L2_Simple;
+        // typedef nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, nanoflann::metric_L1> Index_L1;
         // typedef boost::shared_ptr< nanoflann::KDTreeEigenMatrixAdaptor<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, nanoflann::metric_L2> > IndexPtr;
 
         typedef pcl::PointRepresentation<PointT> PointRepresentation;
@@ -225,8 +227,6 @@ namespace pcl
         class NanoFlannIndexCreator
         {
           public:
-            EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
           /** \brief Create a NanoFLANN Index from the input data.
             * \param[in] data The NanoFLANN matrix containing the input.
             * \return The NanoFLANN index.
@@ -314,7 +314,7 @@ namespace pcl
 
         /** \brief Destructor for NanoFlannSearch. */
         virtual
-        ~NanoFlannSearch();
+        ~NanoFlannSearch() = default;
 
         /** \brief Set the search epsilon precision (error bound) for nearest neighbors searches.
           * \param[in] eps precision (error bound) for nearest neighbors searches
@@ -452,13 +452,11 @@ namespace pcl
         
         bool input_copied_for_nanoflann_;
 
-        // ???
         PointRepresentationConstPtr point_representation_;
 
         // PointCloud data dimension?
         int dim_;
 
-        // ???
         std::vector<int> index_mapping_;
         bool identity_mapping_;
 

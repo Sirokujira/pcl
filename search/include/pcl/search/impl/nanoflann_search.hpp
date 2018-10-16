@@ -43,12 +43,13 @@
 #include <pcl/search/nanoflann_search.h>
 #include <pcl/kdtree/nanoflann.h>
 
+using namespace Eigen;
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 template <typename PointT>
 typename pcl::search::NanoFlannSearch<PointT>::IndexPtr
 pcl::search::NanoFlannSearch<PointT>::KdTreeIndexCreator::createIndex (MatrixConstPtr data)
 {
-  // std::vector<float> vec(data->size());
   // return (IndexPtr (new Index(data->cols(), data.data(), nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
 
   std::vector<float> vec(data->size());
@@ -58,33 +59,20 @@ pcl::search::NanoFlannSearch<PointT>::KdTreeIndexCreator::createIndex (MatrixCon
   // Eigen::MatrixXf mat (reinterpret_cast<const float&> (data->data()), N, dim);
   // Eigen::Map<Eigen::MatrixXf> mat(vec.data(), N, dim);
   // const Eigen::MatrixXf mat(vec.data(), N, dim);
-  Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> mat(N, dim);
+  // Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> mat(N, dim);
+  Eigen::MatrixXf mat = Map<MatrixXf>(&vec[0], N, dim);
 
-  /*
-  // SearchPointCloud<float> cloud_pt;
-  size_t N = data->rows();
-  size_t dim = data->cols();
-  cloud_pt.pts.resize(N);
-  for (size_t i = 0; i < N;i++) 
-  {
-    for (size_t d = 0; d < dim; d++)
-    {
-      if (d == 0) cloud_pt.pts[i].x = vec[i * dim + 0];
-      else if (d == 1) cloud_pt.pts[i].y = vec[i * dim + 1];
-      else if (d == 2) cloud_pt.pts[i].z = vec[i * dim + 2];
-      else break;
-    }
-  }
-  */
   // const PC2KD pc2kd(cloud_pt); // The adaptor
   // return (IndexPtr (new Index(dim, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
 
+  // NG
   // return (IndexPtr (new Index(dim, cloud_pt, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
   // return (IndexPtr (new Index(dim, *data, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
-  return (IndexPtr (new Index(dim, std::cref(mat), max_leaf_size_)));
   // return (IndexPtr (new Index(dim, &data[0], max_leaf_size_)));
   // return (IndexPtr (new Index(dim, std::cref(data.get()), max_leaf_size_)));
   // return (IndexPtr (new Index(dim, (Eigen::MatrixXf*)data.get(), max_leaf_size_)));
+
+  return (IndexPtr (new Index(dim, std::cref(mat), max_leaf_size_)));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,31 +80,13 @@ template <typename PointT>
 typename pcl::search::NanoFlannSearch<PointT>::IndexPtr
 pcl::search::NanoFlannSearch<PointT>::KMeansIndexCreator::createIndex (MatrixConstPtr data)
 {
-  std::vector<float> vec(data->size());
   // return (IndexPtr (new Index(data->cols(), vec.data(), nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
+
+  std::vector<float> vec(data->size());
   size_t N = data->rows();
   size_t dim = data->cols();
-  Eigen::MatrixXf mat (reinterpret_cast<const float&>(vec.data()), N, dim);
+  Eigen::MatrixXf mat = Map<MatrixXf>(&vec[0], N, dim);
 
-  /*
-  // SearchPointCloud<float> cloud_pt;
-  cloud_pt.pts.resize(N);
-  for (size_t i = 0; i < N;i++) 
-  {
-    for (size_t d = 0;d < dim; d++)
-    {
-      if (d == 0) cloud_pt.pts[i].x = vec[i * dim + 0];
-      else if (d == 1) cloud_pt.pts[i].y = vec[i * dim + 1];
-      else cloud_pt.pts[i].z = vec[i * dim + 2];
-    }
-  }
-  */
-  // const PC2KD pc2kd(cloud_pt); // The adaptor
-  // return (IndexPtr (new Index(dim, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
-
-  // return (IndexPtr (new Index(dim, cloud_pt, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
-  // return (IndexPtr (new nanoflann::KMeansIndex<FlannDistance> (*data, flann::KMeansIndexParams ())));
-  // return (IndexPtr (new Index(dim, *data, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
   return (IndexPtr (new Index(dim, std::cref(mat), max_leaf_size_)));
 }
 
@@ -125,31 +95,12 @@ template <typename PointT>
 typename pcl::search::NanoFlannSearch<PointT>::IndexPtr
 pcl::search::NanoFlannSearch<PointT>::KdTreeMultiIndexCreator::createIndex (MatrixConstPtr data)
 {
-  std::vector<float> vec(data->size());
   // return (IndexPtr (new Index(data->cols(), vec.data(), nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
+
+  std::vector<float> vec(data->size());
   size_t N = data->rows();
   size_t dim = data->cols();
-  // Eigen::MatrixXf mat (reinterpret_cast<const float&> (vec.data()), N, dim);
-  Eigen::MatrixXf mat (reinterpret_cast<const float&> (data->data()), N, dim);
-
-  /*
-  cloud_pt.pts.resize(N);
-  for (size_t i = 0; i < N;i++)
-  {
-    for (size_t d = 0; d < dim; d++)
-    {
-      if (d == 0) cloud_pt.pts[i].x = vec[i * dim + 0];
-      else if (d == 1) cloud_pt.pts[i].y = vec[i * dim + 1];
-      else cloud_pt.pts[i].z = vec[i * dim + 2];
-    }
-  }
-  */
-  // const PC2KD pc2kd(cloud_pt); // The adaptor
-  // return (IndexPtr (new Index(dim, pc2kd, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
-
-  // return (IndexPtr (new Index(dim, cloud_pt, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
-  // return (IndexPtr (new nanoflann::KDTreeIndex<FlannDistance> (*data, nanoflann::KDTreeIndexParams (trees_))));
-  // return (IndexPtr (new Index(dim, *data, nanoflann::KDTreeSingleIndexAdaptorParams (max_leaf_size_))));
+  Eigen::MatrixXf mat = Map<MatrixXf>(&vec[0], N, dim);
 
   return (IndexPtr (new Index(dim, std::cref(mat), max_leaf_size_)));
 }
@@ -161,14 +112,6 @@ pcl::search::NanoFlannSearch<PointT>::NanoFlannSearch(bool sorted, NanoFlannInde
   dim_ (0), index_mapping_(), identity_mapping_()
 {
   dim_ = point_representation_->getNumberOfDimensions ();
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointT>
-pcl::search::NanoFlannSearch<PointT>::~NanoFlannSearch()
-{
-  // if (input_copied_for_nanoflann_)
-  //   delete [] input_nanoflann_.get();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -199,7 +142,8 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (const PointT &point, int k
 
   float* cdata = can_cast ? const_cast<float*> (reinterpret_cast<const float*> (&point)): data;
   // const Eigen::MatrixXf m (cdata ,1, point_representation_->getNumberOfDimensions ());
-  const Eigen::MatrixXf m (reinterpret_cast<const float&>(cdata) ,1, point_representation_->getNumberOfDimensions ());
+  // const Eigen::MatrixXf m (reinterpret_cast<const float&>(cdata), 1, point_representation_->getNumberOfDimensions ());
+  Eigen::MatrixXf m = Map<Eigen::MatrixXf>(cdata, 1, point_representation_->getNumberOfDimensions());
 
   nanoflann::SearchParams params;
   params.eps = eps_;
@@ -220,7 +164,7 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (const PointT &point, int k
   nanoflann::KNNResultSet<float, int> resultSet(k); 
   resultSet.init(&indices[0], &dists[0]);
   // int result = index_->findNeighbors(resultSet, &cdata[0], nanoflann::SearchParams(10));
-  int result = index_->index->findNeighbors(resultSet, &m[0], nanoflann::SearchParams(10));
+  int result = index_->index->findNeighbors(resultSet, &m.data()[0], nanoflann::SearchParams(10));
 
   delete [] data;
 
@@ -273,7 +217,8 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (
     float* cdata = can_cast ? const_cast<float*> (reinterpret_cast<const float*> (&cloud[0])): data;
     // const Eigen::MatrixXf m (cdata, cloud.size (), dim_, can_cast ? sizeof (PointT) : dim_ * sizeof (float) );
     // convert 'float *' to 'const float &'
-    const Eigen::MatrixXf m (reinterpret_cast<const float&>(cdata), cloud.size (), dim_, can_cast ? sizeof (PointT) : dim_ * sizeof (float) );
+    // const Eigen::MatrixXf m (reinterpret_cast<const float&>(cdata), cloud.size (), dim_, can_cast ? sizeof (PointT) : dim_ * sizeof (float) );
+    Eigen::MatrixXf m = Map<Eigen::MatrixXf>(cdata, cloud.size (), dim_);
 
     nanoflann::SearchParams params;
     params.sorted = sorted_results_;
@@ -282,7 +227,7 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (
     nanoflann::KNNResultSet<float, int> resultSet(k); 
     resultSet.init(&k_indices[0][0], &k_sqr_distances[0][0]);
     // index_->findNeighbors(resultSet, &m[0], params);
-    index_->index->findNeighbors(resultSet, &cdata[0], params);
+    index_->index->findNeighbors(resultSet, &m.data()[0], params);
 
     delete [] data;
   }
@@ -305,14 +250,15 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (
       float* out = data+i*dim_;
       point_representation_->vectorize (cloud[indices[i]],out);
     }
-    const Eigen::MatrixXf m (reinterpret_cast<const float&>(data), indices.size (), point_representation_->getNumberOfDimensions ());
+    // const Eigen::MatrixXf m (reinterpret_cast<const float&>(data), indices.size (), point_representation_->getNumberOfDimensions ());
+    Eigen::MatrixXf m = Map<Eigen::MatrixXf>(data, indices.size (), point_representation_->getNumberOfDimensions ());
 
     nanoflann::SearchParams params;
     params.sorted = sorted_results_;
     params.eps = eps_;
     nanoflann::KNNResultSet<float, int> resultSet(k); 
     resultSet.init(&k_indices[0][0], &k_sqr_distances[0][0]);
-    index_->index->findNeighbors(resultSet, &m[0], params);
+    index_->index->findNeighbors(resultSet, &m.data()[0], params);
 
     delete[] data;
   }
@@ -348,7 +294,8 @@ pcl::search::NanoFlannSearch<PointT>::radiusSearch (
   }
 
   float* cdata = can_cast ? const_cast<float*> (reinterpret_cast<const float*> (&point)) : data;
-  const Eigen::MatrixXf m (reinterpret_cast<const float&>(cdata) ,1, point_representation_->getNumberOfDimensions ());
+  // const Eigen::MatrixXf m (reinterpret_cast<const float&>(cdata) ,1, point_representation_->getNumberOfDimensions ());
+  Eigen::MatrixXf m = Map<Eigen::MatrixXf>(cdata, 1, point_representation_->getNumberOfDimensions ());
 
   nanoflann::SearchParams params;
   params.sorted = sorted_results_;
@@ -362,14 +309,11 @@ pcl::search::NanoFlannSearch<PointT>::radiusSearch (
   const float search_radius = static_cast<float>(radius * radius);
   nanoflann::RadiusResultSet<float, size_t> resultSet(search_radius, ret_matches);
 
-  std::vector<float> vec(m.size());
-  Eigen::Map<Eigen::MatrixXf>(vec.data(), m.rows(), m.cols()) = m;
-
   // int result = index_->radiusSearch (m, i, d, static_cast<float> (radius * radius), params);
   // int result = index_->radiusSearch(&cdata[0], search_radius, ret_matches, params);
   // int result = index_->radiusSearch(vec.data(), search_radius, ret_matches, params);
   // int result = index_->findNeighbors(resultSet, vec.data(), params);
-  int result = index_->index->findNeighbors(resultSet, &m[0], params);
+  int result = index_->index->findNeighbors(resultSet, &m.data()[0], params);
   cout << "radiusSearch(): radius=" << radius << " -> " << result << " matches\n";
 
   // for (size_t i = 0; i < result; i++)
@@ -407,7 +351,7 @@ void pcl::search::NanoFlannSearch<PointT>::radiusSearch (
     k_indices.resize (cloud.size ());
     k_sqr_distances.resize (cloud.size ());
 
-    if (! cloud.is_dense) // remove this check as soon as FLANN does NaN checks internally
+    if (! cloud.is_dense) // remove this check as soon as NANOFLANN does NaN checks internally
     {
       for (size_t i = 0; i < cloud.size(); i++)
       {
@@ -429,15 +373,17 @@ void pcl::search::NanoFlannSearch<PointT>::radiusSearch (
     }
 
     float* cdata = can_cast ? const_cast<float*> (reinterpret_cast<const float*> (&cloud[0])) : data;
-    const Eigen::MatrixXf m (reinterpret_cast<const float&>(cdata), cloud.size (), dim_, can_cast ? sizeof (PointT) : dim_ * sizeof (float));
+    // NG : 4D? Setting?(Eigen Matrix)
+    // const Eigen::MatrixXf m (reinterpret_cast<const float&>(cdata), cloud.size (), dim_, can_cast ? sizeof (PointT) : dim_ * sizeof (float));
+    // Note that I initialize vec with the matrix size to begin with:
+    // NG2 :
+    // Eigen::MatrixXf m = Eigen::Map<Eigen::MatrixXf>(reinterpret_cast<const float&>(cdata), cloud.size (), dim_);
+    // OK : 
+    Eigen::MatrixXf m = Map<Eigen::MatrixXf>(cdata, cloud.size (), dim_);
 
     nanoflann::SearchParams params;
     params.sorted = sorted_results_;
     params.eps = eps_;
-
-    // Note that I initialize vec with the matrix size to begin with:
-    std::vector<float> vec(m.size());
-    Eigen::Map<Eigen::MatrixXf>(vec.data(), m.rows(), m.cols()) = m;
 
     // index_->radiusSearch (m, k_indices, k_sqr_distances, static_cast<float> (radius * radius), params);
     // set Matrix
@@ -445,7 +391,7 @@ void pcl::search::NanoFlannSearch<PointT>::radiusSearch (
     // not use ResultSet
     // size_t nMatches = index_->index->radiusSearch(vec.data(), search_radius, &ret_matches[0], params);
     // use ResultSet
-    size_t nMatches = index_->index->findNeighbors(resultSet, &vec.data()[0], params);
+    size_t nMatches = index_->index->findNeighbors(resultSet, &m.data()[0], params);
     cout << "radiusSearch(): radius=" << radius << " -> " << nMatches << " matches\n";
 
     // for (size_t i = 0; i < nMatches; i++)
@@ -475,21 +421,20 @@ void pcl::search::NanoFlannSearch<PointT>::radiusSearch (
     }
     // const flann::Matrix<float> m (data, cloud.size (), point_representation_->getNumberOfDimensions ());
     // const Eigen::MatrixXf m (data, cloud.size (), point_representation_->getNumberOfDimensions ());
-    const Eigen::MatrixXf m (reinterpret_cast<const float&>(data), cloud.size (), point_representation_->getNumberOfDimensions ());
+    // const Eigen::MatrixXf m (reinterpret_cast<const float&>(data), cloud.size (), point_representation_->getNumberOfDimensions ());
+    // Eigen::MatrixXf m = Eigen::Map<Eigen::MatrixXf> (reinterpret_cast<const float&>(data), cloud.size (), point_representation_->getNumberOfDimensions ());
+    Eigen::MatrixXf m = Eigen::Map<Eigen::MatrixXf> (data, cloud.size (), point_representation_->getNumberOfDimensions ());
 
     nanoflann::SearchParams params;
     params.sorted = sorted_results_;
     params.eps = eps_;
-
-    std::vector<float> vec(m.size());
-    Eigen::Map<Eigen::MatrixXf>(vec.data(), m.rows(), m.cols()) = m;
 
     // index_->radiusSearch (m, k_indices, k_sqr_distances, static_cast<float> (radius * radius), params);
     // const size_t nMatches = index_->radiusSearch(m, search_radius, ret_matches, params);
     // not use ResultSet
     // size_t nMatches = index_->index->radiusSearch(vec.data(), search_radius, &ret_matches, params);
     // use ResultSet
-    size_t nMatches = index_->index->findNeighbors(resultSet, vec.data(), params);
+    size_t nMatches = index_->index->findNeighbors(resultSet, &m.data()[0], params);
 
     // cout << "radiusSearch(): radius=" << search_radius << " -> " << nMatches << " matches\n"; 
     // for (size_t i = 0; i < nMatches; i++) 
@@ -533,13 +478,20 @@ void pcl::search::NanoFlannSearch<PointT>::convertInputToNanoFlannMatrix ()
     if (input_->is_dense && point_representation_->isTrivial ())
     {
       // const cast is evil, but nanoflann won't change the data
-      input_nanoflann_ = MatrixPtr (new Eigen::MatrixXf (const_cast<float*>(reinterpret_cast<const float*>(&(*input_) [0])), original_no_of_points, point_representation_->getNumberOfDimensions (),sizeof (PointT)));
+      // NG : 
+      // input_nanoflann_ = MatrixPtr (new Eigen::MatrixXf (const_cast<float*>(reinterpret_cast<const float*>(&(*input_) [0])), original_no_of_points, point_representation_->getNumberOfDimensions (),sizeof (PointT)));
+      // NG : convert const pcl::PointXYZ *' to 'float *'
+      // input_nanoflann_ = MatrixPtr (new Eigen::Map<Eigen::MatrixXf> (&(*input_)[0], original_no_of_points, point_representation_->getNumberOfDimensions ()));
+      // input_nanoflann_ = MatrixPtr (new Eigen::Map<Eigen::MatrixXf> ((*input_)->points, original_no_of_points, point_representation_->getNumberOfDimensions ()));
+
       input_copied_for_nanoflann_ = false;
     }
     else
     {
-      input_nanoflann_ = MatrixPtr (new Eigen::MatrixXf (new float[original_no_of_points*point_representation_->getNumberOfDimensions ()], original_no_of_points, point_representation_->getNumberOfDimensions ()));
-      float* cloud_ptr = input_nanoflann_->get();
+      // NG : 
+      // input_nanoflann_ = MatrixPtr (new Eigen::MatrixXf (new float[original_no_of_points*point_representation_->getNumberOfDimensions ()], original_no_of_points, point_representation_->getNumberOfDimensions ()));
+      // input_nanoflann_ = MatrixPtr (new Eigen::Map<MatrixXf> (new float[original_no_of_points * point_representation_->getNumberOfDimensions ()], original_no_of_points, point_representation_->getNumberOfDimensions ()));
+      float* cloud_ptr = input_nanoflann_.get()->data();
       for (size_t i = 0; i < original_no_of_points; ++i)
       {
         const PointT& point = (*input_)[i];
@@ -560,8 +512,16 @@ void pcl::search::NanoFlannSearch<PointT>::convertInputToNanoFlannMatrix ()
   }
   else
   {
-    input_nanoflann_ = MatrixPtr (new Eigen::MatrixXf (new float[original_no_of_points*point_representation_->getNumberOfDimensions ()], original_no_of_points, point_representation_->getNumberOfDimensions ()));
-    float* cloud_ptr = input_nanoflann_->get();
+    // NG
+    // input_nanoflann_ = MatrixPtr (new Eigen::MatrixXf (new float[original_no_of_points*point_representation_->getNumberOfDimensions ()], original_no_of_points));
+    // new float[original_no_of_points*point_representation_->getNumberOfDimensions ()], 
+    // input_nanoflann_ = MatrixPtr (new Eigen::MatrixXf::Zero(original_no_of_points, point_representation_->getNumberOfDimensions ()));
+    // input_nanoflann_ = MatrixPtr (new Eigen::MatrixXf (original_no_of_points, point_representation_->getNumberOfDimensions ()));
+    // NG : boost::shared_ptr Error (not set Construct)
+    // float* cloud_ptr = new float[original_no_of_points * point_representation_->getNumberOfDimensions()];
+    // input_nanoflann_ = MatrixPtr (new Eigen::Map<Eigen::MatrixXf>(cloud_ptr, original_no_of_points, point_representation_->getNumberOfDimensions ()));
+
+    float* cloud_ptr = input_nanoflann_.get()->data();
     for (size_t indices_index = 0; indices_index < original_no_of_points; ++indices_index)
     {
       int cloud_index = (*indices_)[indices_index];
@@ -579,8 +539,8 @@ void pcl::search::NanoFlannSearch<PointT>::convertInputToNanoFlannMatrix ()
       cloud_ptr += dim_;
     }
   }
-  if (input_copied_for_nanoflann_)
-    input_nanoflann_->rows = index_mapping_.size ();
+  // if (input_copied_for_nanoflann_)
+  //   input_nanoflann_.get()->rows() = index_mapping_.size ();
 }
 
 #define PCL_INSTANTIATE_NanoFlannSearch(T) template class PCL_EXPORTS pcl::search::NanoFlannSearch<T>;

@@ -9,7 +9,7 @@ set VTK_DIR=%PCL_ROOT%\3rdParty\VTK
 rem add custom module
 set NANOFLANN_ROOT=E:\nanoflann
 
-rem Test
+rem execute GoogleTest
 rem set Path=%BOOST_ROOT%\lib;%FLANN_ROOT%\bin;%QHULL_ROOT%\bin;%VTK_DIR%\bin;%Path%
 
 cd %~dp0

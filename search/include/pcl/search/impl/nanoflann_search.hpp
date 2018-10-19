@@ -483,6 +483,7 @@ void pcl::search::NanoFlannSearch<PointT>::convertInputToNanoFlannMatrix ()
       // NG : convert const pcl::PointXYZ *' to 'float *'
       // input_nanoflann_ = MatrixPtr (new Eigen::Map<Eigen::MatrixXf> (&(*input_)[0], original_no_of_points, point_representation_->getNumberOfDimensions ()));
       // input_nanoflann_ = MatrixPtr (new Eigen::Map<Eigen::MatrixXf> ((*input_)->points, original_no_of_points, point_representation_->getNumberOfDimensions ()));
+      // input_nanoflann_ = MatrixPtr (new Eigen::Map<Eigen::MatrixXf> ((*input_)->points, original_no_of_points, point_representation_->getNumberOfDimensions ()));
 
       input_copied_for_nanoflann_ = false;
     }
@@ -491,6 +492,8 @@ void pcl::search::NanoFlannSearch<PointT>::convertInputToNanoFlannMatrix ()
       // NG : 
       // input_nanoflann_ = MatrixPtr (new Eigen::MatrixXf (new float[original_no_of_points*point_representation_->getNumberOfDimensions ()], original_no_of_points, point_representation_->getNumberOfDimensions ()));
       // input_nanoflann_ = MatrixPtr (new Eigen::Map<MatrixXf> (new float[original_no_of_points * point_representation_->getNumberOfDimensions ()], original_no_of_points, point_representation_->getNumberOfDimensions ()));
+      // boost::shared_ptr<MatrixXf> input_nanoflann2_(new Eigen::Map<MatrixXf> (new float[original_no_of_points * point_representation_->getNumberOfDimensions()], original_no_of_points, point_representation_->getNumberOfDimensions() ));
+
       float* cloud_ptr = input_nanoflann_.get()->data();
       for (size_t i = 0; i < original_no_of_points; ++i)
       {

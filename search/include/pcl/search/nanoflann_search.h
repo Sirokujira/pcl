@@ -172,6 +172,8 @@ namespace pcl
       using Search<PointT>::sorted_results_;
 
       public:
+    	// EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
         typedef boost::shared_ptr<NanoFlannSearch<PointT> > Ptr;
         typedef boost::shared_ptr<const NanoFlannSearch<PointT> > ConstPtr;
 

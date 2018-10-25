@@ -189,8 +189,10 @@ namespace pcl
         // build NG(Eigen Initialize Error?)
         // typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> Matrix;
         // typedef Eigen::MatrixXf Matrix;
-        typedef boost::shared_ptr<Eigen::MatrixXf> MatrixPtr;
-        typedef boost::shared_ptr<const Eigen::MatrixXf> MatrixConstPtr;
+        // typedef boost::shared_ptr<Eigen::MatrixXf> MatrixPtr;
+        // typedef boost::shared_ptr<const Eigen::MatrixXf> MatrixConstPtr;
+    	typedef std::shared_ptr<Eigen::MatrixXf> MatrixPtr;
+        typedef std::shared_ptr<const Eigen::MatrixXf> MatrixConstPtr;
         // 初期化時のダミー用変数
         // float* init_dummy_data;
 
@@ -312,7 +314,9 @@ namespace pcl
             int trees_;
         };
 
+    	// I/Fとしても扱いづらい
         NanoFlannSearch (bool sorted = true, NanoFlannIndexCreatorPtr creator = NanoFlannIndexCreatorPtr (new KdTreeIndexCreator ()));
+    	NanoFlannSearch (bool sorted = true, int type=0);
 
         /** \brief Destructor for NanoFlannSearch. */
         virtual
@@ -462,6 +466,7 @@ namespace pcl
         std::vector<int> index_mapping_;
         bool identity_mapping_;
 
+        Eigen::MatrixXf matrix_points;
     };
   }
 }

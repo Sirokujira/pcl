@@ -74,7 +74,7 @@ pcl::search::NanoFlannSearch<PointT>::KdTreeIndexCreator::createIndex (MatrixCon
   // return (IndexPtr (new Index(dim, std::cref(data.get()), max_leaf_size_)));
   // return (IndexPtr (new Index(dim, (Eigen::MatrixXf*)data.get(), max_leaf_size_)));
 
-  return (IndexPtr (new Index(dim, std::cref(mat), max_leaf_size_)));
+  return (IndexPtr (new Index(dim, std::cref(mat), 15)));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,7 +89,7 @@ pcl::search::NanoFlannSearch<PointT>::KMeansIndexCreator::createIndex (MatrixCon
   size_t dim = data->cols();
   Eigen::MatrixXf mat = Map<MatrixXf>(&vec[0], N, dim);
 
-  return (IndexPtr (new Index(dim, std::cref(mat), max_leaf_size_)));
+  return (IndexPtr (new Index(dim, std::cref(mat), 15)));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -104,7 +104,7 @@ pcl::search::NanoFlannSearch<PointT>::KdTreeMultiIndexCreator::createIndex (Matr
   size_t dim = data->cols();
   Eigen::MatrixXf mat = Map<MatrixXf>(&vec[0], N, dim);
 
-  return (IndexPtr (new Index(dim, std::cref(mat), max_leaf_size_)));
+  return (IndexPtr (new Index(dim, std::cref(mat), 15)));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

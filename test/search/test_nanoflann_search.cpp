@@ -81,8 +81,8 @@ init ()
 TEST (PCL, NanoFlannSearch_nearestKSearch)
 {
   // pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
-  pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
-  // std::unique_ptr< pcl::search::Search<PointXYZ> > NanoFlannSearch = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
+  // pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
+  std::unique_ptr< pcl::search::Search<PointXYZ> > NanoFlannSearch = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
   NanoFlannSearch->setInputCloud (cloud.makeShared ());
   PointXYZ test_point (0.01f, 0.01f, 0.01f);
   unsigned int no_of_neighbors = 20;
@@ -120,13 +120,13 @@ TEST (PCL, NanoFlannSearch_nearestKSearch)
     ok = (fabs (euclideanDistance (test_point, point)) - max_dist) <= 1e-6;
     // if (!ok)  cerr << k_indices[i] << " is not correct...\n";
     // else      cerr << k_indices[i] << " is correct...\n";
-    // EXPECT_EQ (ok, true);
+    EXPECT_EQ (ok, true);
   }
 
   ScopeTime scopeTime ("NANOFLANN nearestKSearch");
   {
-    pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ>(new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
-    // std::unique_ptr< pcl::search::Search<PointXYZ> > NanoFlannSearch = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
+    // pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ>(new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
+    std::unique_ptr< pcl::search::Search<PointXYZ> > NanoFlannSearch = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
     //NanoFlannSearch->initSearchDS ();
     NanoFlannSearch->setInputCloud (cloud_big.makeShared ());
     for (size_t i = 0; i < cloud_big.points.size (); ++i)
@@ -135,13 +135,13 @@ TEST (PCL, NanoFlannSearch_nearestKSearch)
 }
 
 /* Test the templated NN search (for different query point types) */
-/*
 TEST (PCL, NanoFlannSearch_differentPointT)
 {
 
   unsigned int no_of_neighbors = 20;
 
-  pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
+  // pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
+  std::unique_ptr< pcl::search::Search<PointXYZ> > NanoFlannSearch = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
   //NanoFlannSearch->initSearchDS ();
   NanoFlannSearch->setInputCloud (cloud_big.makeShared ());
 
@@ -180,16 +180,16 @@ TEST (PCL, NanoFlannSearch_differentPointT)
 
   }
 }
-*/
 /* Test for NanoFlannSearch nearestKSearch with multiple query points */
-/*
 TEST (PCL, NanoFlannSearch_multipointKnnSearch)
 {
 
   unsigned int no_of_neighbors = 20;
 
 
-  pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
+  // pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
+  std::unique_ptr< pcl::search::Search<PointXYZ> > NanoFlannSearch = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
+
   //NanoFlannSearch->initSearchDS ();
   NanoFlannSearch->setInputCloud (cloud_big.makeShared ());
 
@@ -214,16 +214,15 @@ TEST (PCL, NanoFlannSearch_multipointKnnSearch)
 
   }
 }
-*/
 /* Test for NanoFlannSearch nearestKSearch with multiple query points */
-/*
 TEST (PCL, NanoFlannSearch_knnByIndex)
 {
 
   unsigned int no_of_neighbors = 3;
 
+  // pcl::search::Search<PointXYZ>* nanoflann_search = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
+  std::unique_ptr< pcl::search::Search<PointXYZ> > NanoFlannSearch = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
 
-  pcl::search::Search<PointXYZ>* nanoflann_search = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
   //NanoFlannSearch->initSearchDS ();
   nanoflann_search->setInputCloud (cloud_big.makeShared ());
 
@@ -260,10 +259,8 @@ TEST (PCL, NanoFlannSearch_knnByIndex)
 
   }
 }
-*/
 
 /* Test for NanoFlannSearch nearestKSearch */
-/*
 TEST (PCL, NanoFlannSearch_compareToKdTreeNanoFlann)
 {
 
@@ -273,18 +270,19 @@ TEST (PCL, NanoFlannSearch_compareToKdTreeNanoFlann)
   vector<float> k_distances;
   k_distances.resize (no_of_neighbors);
 
-  pcl::search::Search<PointXYZ> *nanoflann_search, *kdtree_search;
+  std::unique_ptr< pcl::search::Search<PointXYZ> > nanoflann_search, kdtree_search;
 
   PointCloud<PointXYZ>::Ptr pc = cloud_big.makeShared();
   {
     ScopeTime scopeTime ("NANOFLANN build");
-    nanoflann_search = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
+    // nanoflann_search = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
+  	nanoflann_search = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
     nanoflann_search->setInputCloud (pc);
   }
 
   {
     ScopeTime scopeTime ("kdtree build");
-    kdtree_search = new pcl::search::KdTree<PointXYZ> ();
+    kdtree_search = std::make_unique< pcl::search::KdTree<PointXYZ> >();
     kdtree_search->setInputCloud (pc);
   }
 
@@ -372,10 +370,9 @@ TEST (PCL, NanoFlannSearch_compareToKdTreeNanoFlann)
     }
   }
 
-  delete nanoflann_search;
-  delete kdtree_search;
+  // delete nanoflann_search;
+  // delete kdtree_search;
 }
-*/
 
 int
 main (int argc, char** argv)

@@ -314,9 +314,11 @@ namespace pcl
             int trees_;
         };
 
-    	// I/Fとしても扱いづらい
+    	// I/Fとしても扱いづらい、けどパラメータは受け取りたい。
         NanoFlannSearch (bool sorted = true, NanoFlannIndexCreatorPtr creator = NanoFlannIndexCreatorPtr (new KdTreeIndexCreator ()));
     	NanoFlannSearch (bool sorted = true, int type=0);
+    	// ラムダ式を使ってパラメータを渡せないか(int, unsigned int くらい?)
+    	// NanoFlannSearch ();
 
         /** \brief Destructor for NanoFlannSearch. */
         virtual

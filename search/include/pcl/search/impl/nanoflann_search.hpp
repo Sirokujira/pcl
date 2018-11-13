@@ -202,6 +202,7 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (const PointT &point, int k
   nanoflann::SearchParams params;
   params.eps = eps_;
   params.sorted = sorted_results_;
+  params.checks = checks_;
   // p.checks = checks_;
   if (indices.size() != static_cast<unsigned int> (k))
     indices.resize (k, -1);
@@ -218,7 +219,7 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (const PointT &point, int k
   nanoflann::KNNResultSet<float, int> resultSet(k); 
   resultSet.init(&indices[0], &dists[0]);
   // int result = index_->findNeighbors(resultSet, &cdata[0], nanoflann::SearchParams(10));
-  int result = index_->index->findNeighbors(resultSet, &m.data()[0], nanoflann::SearchParams(10));
+  int result = index_->index->findNeighbors(resultSet, &m.data()[0], params);
 
   delete [] data;
 
@@ -277,6 +278,7 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (
     nanoflann::SearchParams params;
     params.sorted = sorted_results_;
     params.eps = eps_;
+    params.checks = checks_;
     // p.checks = checks_;
     nanoflann::KNNResultSet<float, int> resultSet(k); 
     resultSet.init(&k_indices[0][0], &k_sqr_distances[0][0]);
@@ -310,6 +312,7 @@ pcl::search::NanoFlannSearch<PointT>::nearestKSearch (
     nanoflann::SearchParams params;
     params.sorted = sorted_results_;
     params.eps = eps_;
+    params.checks = checks_;
     nanoflann::KNNResultSet<float, int> resultSet(k); 
     resultSet.init(&k_indices[0][0], &k_sqr_distances[0][0]);
     index_->index->findNeighbors(resultSet, &m.data()[0], params);
@@ -355,7 +358,7 @@ pcl::search::NanoFlannSearch<PointT>::radiusSearch (
   params.sorted = sorted_results_;
   params.eps = eps_;
   // p.max_neighbors = max_nn > 0 ? max_nn : -1;
-  // p.checks = checks_;
+  params.checks = checks_;
   // replace ret_matches? std::pair(i, d)
   std::vector<std::vector<size_t> > i (1);
   std::vector<std::vector<float> > d (1);
@@ -375,8 +378,13 @@ pcl::search::NanoFlannSearch<PointT>::radiusSearch (
   // cout << "\n"; 
 
   delete [] data;
-  // indices = i [0];
-  // distances = d [0];
+  // for (size_t i = 0; i < result; i++)
+  // {
+  	// 	indices = ret_matches.begin();
+  // 	distances[] = ret_matches[0].second;
+  // }
+  // 
+  // 
 
   if (!identity_mapping_)
   {
@@ -438,6 +446,7 @@ void pcl::search::NanoFlannSearch<PointT>::radiusSearch (
     nanoflann::SearchParams params;
     params.sorted = sorted_results_;
     params.eps = eps_;
+    params.checks = checks_;
 
     // index_->radiusSearch (m, k_indices, k_sqr_distances, static_cast<float> (radius * radius), params);
     // set Matrix
@@ -482,6 +491,7 @@ void pcl::search::NanoFlannSearch<PointT>::radiusSearch (
     nanoflann::SearchParams params;
     params.sorted = sorted_results_;
     params.eps = eps_;
+    params.checks = checks_;
 
     // index_->radiusSearch (m, k_indices, k_sqr_distances, static_cast<float> (radius * radius), params);
     // const size_t nMatches = index_->radiusSearch(m, search_radius, ret_matches, params);

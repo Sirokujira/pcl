@@ -118,8 +118,9 @@ TEST (PCL, NanoFlannSearch_nearestKSearch)
     bool ok = euclideanDistance (test_point, point) <= max_dist;
     if (!ok)
     ok = (fabs (euclideanDistance (test_point, point)) - max_dist) <= 1e-6;
-    // if (!ok)  cerr << k_indices[i] << " is not correct...\n";
-    // else      cerr << k_indices[i] << " is correct...\n";
+    printf("param : %f.\n", fabs (euclideanDistance (test_point, point)) - max_dist);
+    //if (!ok)  cerr << k_indices[i] << " is not correct...\n";
+    //else      cerr << k_indices[i] << " is correct...\n";
     EXPECT_EQ (ok, true);
   }
 
@@ -221,7 +222,7 @@ TEST (PCL, NanoFlannSearch_knnByIndex)
   unsigned int no_of_neighbors = 3;
 
   // pcl::search::Search<PointXYZ>* nanoflann_search = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
-  std::unique_ptr< pcl::search::Search<PointXYZ> > NanoFlannSearch = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
+  std::unique_ptr< pcl::search::Search<PointXYZ> > nanoflann_search = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
 
   //NanoFlannSearch->initSearchDS ();
   nanoflann_search->setInputCloud (cloud_big.makeShared ());
@@ -263,7 +264,6 @@ TEST (PCL, NanoFlannSearch_knnByIndex)
 /* Test for NanoFlannSearch nearestKSearch */
 TEST (PCL, NanoFlannSearch_compareToKdTreeNanoFlann)
 {
-
   int no_of_neighbors=3;
   vector<int> k_indices;
   k_indices.resize (no_of_neighbors);
@@ -276,7 +276,7 @@ TEST (PCL, NanoFlannSearch_compareToKdTreeNanoFlann)
   {
     ScopeTime scopeTime ("NANOFLANN build");
     // nanoflann_search = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
-  	nanoflann_search = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
+    nanoflann_search = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
     nanoflann_search->setInputCloud (pc);
   }
 
@@ -369,9 +369,6 @@ TEST (PCL, NanoFlannSearch_compareToKdTreeNanoFlann)
       ASSERT_TRUE( indices_nanoflann[i][j] == indices_tree[i][j] || dists_nanoflann[i][j]==dists_tree[i][j]);
     }
   }
-
-  // delete nanoflann_search;
-  // delete kdtree_search;
 }
 
 int
@@ -383,8 +380,8 @@ main (int argc, char** argv)
   // Testing using explicit instantiation of inherited class
   // pcl::search::Search<PointXYZ>* NanoFlannSearch = new pcl::search::NanoFlannSearch<PointXYZ> (new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
   // std::unique_ptr< pcl::search::Search<PointXYZ> > NanoFlannSearch = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(new search::NanoFlannSearch<PointXYZ>::KdTreeIndexCreator);
-  std::unique_ptr< pcl::search::Search<PointXYZ> > NanoFlannSearch = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
-  NanoFlannSearch->setInputCloud (cloud.makeShared ());
+  // std::unique_ptr< pcl::search::Search<PointXYZ> > NanoFlannSearch = std::make_unique<pcl::search::NanoFlannSearch<PointXYZ> >(true, 0);
+  // NanoFlannSearch->setInputCloud (cloud.makeShared ());
 
   return (RUN_ALL_TESTS ());
 }

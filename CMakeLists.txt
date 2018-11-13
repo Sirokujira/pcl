@@ -1,24 +1,5 @@
 ### ---[ PCL global CMake
-cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
-
-if(POLICY CMP0017)
-  # Do not include files in CMAKE_MODULE_PATH from files
-  # in CMake module directory. Fix MXE build
-  cmake_policy(SET CMP0017 NEW)
-endif()
-
-if(POLICY CMP0020 AND (WIN32 AND NOT MINGW))
-  cmake_policy(SET CMP0020 NEW) # Automatically link Qt executables to qtmain target on Windows
-endif()
-
-if(POLICY CMP0042)
-  # Uses Mac OS X @rpath in the target's install name
-  cmake_policy(SET CMP0042 NEW)
-endif()
-
-if(POLICY CMP0048)
-  cmake_policy(SET CMP0048 OLD) # do not use VERSION option in project() command
-endif()
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 if(POLICY CMP0054)
   cmake_policy(SET CMP0054 OLD) # Silent warnings about quoted variables
@@ -38,7 +19,7 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "")
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "build type default to RelWithDebInfo, set to Release to improve performance" FORCE)
 endif()
 
-project(PCL)
+project(PCL VERSION 1.9.0.99)
 string(TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 
 ### ---[ Find universal dependencies
@@ -217,7 +198,6 @@ if(CMAKE_COMPILER_IS_CLANG)
 endif()
 
 include("${PCL_SOURCE_DIR}/cmake/pcl_utils.cmake")
-set(PCL_VERSION "1.9.0" CACHE STRING "PCL version")
 DISSECT_VERSION()
 GET_OS_INFO()
 SET_INSTALL_DIRS()
@@ -445,7 +425,7 @@ if(WITH_PCAP)
 endif()
 
 # OpenGL and GLUT
-option(WITH_OPENGL "Support for OpenGL" FALSE)
+option(WITH_OPENGL "Support for OpenGL" TRUE)
 if(WITH_OPENGL)
   include("${PCL_SOURCE_DIR}/cmake/pcl_find_gl.cmake")
 endif()

@@ -50,6 +50,10 @@ rem -DBUILD_tests_search=OFF ^
 -DBUILD_tests_visualization=OFF ^
 -DBUILD_tests_kdtree=ON ^
 -DBUILD_tests_search=ON ^
+-DQHULL_INCLUDE_DIR=%QHULL_ROOT%\include
+-DQHULL_LIBRARY=%QHULL_ROOT%\lib\qhullstatic.lib
+-DQHULL_LIBRARY_DEBUG=%QHULL_ROOT%\lib\qhullstatic_d.lib
+
 -DGTEST_ROOT=E:/googletest/googletest ^
 ..
 

@@ -32,7 +32,7 @@
  *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- *	
+ *
  */
 
 #include <pcl/point_cloud.h>
@@ -46,6 +46,11 @@
 #include <pcl/console/parse.h>
 #include <pcl/common/time.h>
 #include <pcl/visualization/cloud_viewer.h>
+
+#include <mutex>
+#include <thread>
+
+using namespace std::chrono_literals;
 
 typedef pcl::visualization::PointCloudColorHandler<pcl::PCLPointCloud2> ColorHandler;
 typedef ColorHandler::Ptr ColorHandlerPtr;
@@ -93,7 +98,7 @@ class OpenNIIntegralImageNormalEstimation
     void 
     cloud_cb (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud)
     {
-      boost::mutex::scoped_lock lock (mtx_);
+      std::lock_guard<std::mutex> lock (mtx_);
       //lock while we set our cloud;
       FPS_CALC ("computation");
 
@@ -120,10 +125,10 @@ class OpenNIIntegralImageNormalEstimation
     void
     viz_cb (pcl::visualization::PCLVisualizer& viz)
     {
-      boost::mutex::scoped_lock lock (mtx_);
+      std::lock_guard<std::mutex> lock (mtx_);
       if (!cloud_)
       {
-        boost::this_thread::sleep(boost::posix_time::seconds(1));
+        std::this_thread::sleep_for(1s);
         return;
       }
 
@@ -163,7 +168,7 @@ class OpenNIIntegralImageNormalEstimation
       
       while (!viewer.wasStopped ())
       {
-        boost::this_thread::sleep(boost::posix_time::seconds(1));
+        std::this_thread::sleep_for(1s);
       }
 
       interface->stop ();
@@ -174,7 +179,7 @@ class OpenNIIntegralImageNormalEstimation
     pcl::BoundaryEstimation<pcl::PointXYZRGBNormal, pcl::PointXYZRGBNormal, pcl::Boundary> be_;
     pcl::visualization::CloudViewer viewer;
     std::string device_id_;
-    boost::mutex mtx_;
+    std::mutex mtx_;
     // Data
     pcl::PointCloud<pcl::Boundary>::Ptr boundaries_;
     CloudPtr cloud_, cloud_pass_;

@@ -142,10 +142,10 @@ class PeoplePCDApp
 
     PeoplePCDApp (pcl::Grabber& capture, bool write)
       : capture_(capture),
+        cloud_cb_(true),
         write_ (write),
         exit_(false),
         time_ms_(0),
-        cloud_cb_(true),
         counter_(0),
         final_view_("Final labeling"),
         depth_view_("Depth")
@@ -214,7 +214,7 @@ class PeoplePCDApp
     void source_cb1(const boost::shared_ptr<const PointCloud<PointXYZRGBA> >& cloud)
     {
       {          
-        boost::mutex::scoped_lock lock(data_ready_mutex_);
+        std::lock_guard<std::mutex> lock(data_ready_mutex_);
         if (exit_)
           return;
 
@@ -226,7 +226,7 @@ class PeoplePCDApp
     void source_cb2(const boost::shared_ptr<openni_wrapper::Image>& image_wrapper, const boost::shared_ptr<openni_wrapper::DepthImage>& depth_wrapper, float)
     {
       {                    
-        boost::mutex::scoped_try_lock lock(data_ready_mutex_);
+        std::unique_lock<std::mutex> lock (data_ready_mutex_, std::try_to_lock);
 
         if (exit_ || !lock)
           return;
@@ -256,7 +256,7 @@ class PeoplePCDApp
         rgba_host_.points.resize(w * h);
         rgba_host_.width = w;
         rgba_host_.height = h;
-        for(int i = 0; i < rgba_host_.size(); ++i)
+        for(size_t i = 0; i < rgba_host_.size(); ++i)
         {
           const unsigned char *pixel = &rgb_host_[i * 3];
           RGB& rgba = rgba_host_.points[i];         
@@ -286,14 +286,14 @@ class PeoplePCDApp
       boost::signals2::connection c = cloud_cb_ ? capture_.registerCallback (func1) : capture_.registerCallback (func2);
 
       {
-        boost::unique_lock<boost::mutex> lock(data_ready_mutex_);
+        std::unique_lock<std::mutex> lock(data_ready_mutex_);
         
         try 
         { 
           capture_.start ();
           while (!exit_ && !final_view_.wasStopped())
           {                                    
-            bool has_data = data_ready_cond_.timed_wait(lock, boost::posix_time::millisec(100));
+            bool has_data = (data_ready_cond_.wait_for(lock, 100ms) == std::cv_status::no_timeout);
             if(has_data)
             {                   
               SampledScopeTime fps(time_ms_);
@@ -319,8 +319,8 @@ class PeoplePCDApp
       c.disconnect();
     }
 
-    boost::mutex data_ready_mutex_;
-    boost::condition_variable data_ready_cond_;
+    std::mutex data_ready_mutex_;
+    std::condition_variable data_ready_cond_;
 
     pcl::Grabber& capture_;
     
@@ -379,7 +379,7 @@ int main(int argc, char** argv)
   pcl::gpu::setDevice (device);
   pcl::gpu::printShortCudaDeviceInfo (device);
   
-  bool write = 0;
+  bool write = false;
   pc::parse_argument (argc, argv, "-w", write);
 
   // selecting data source
@@ -423,10 +423,10 @@ int main(int argc, char** argv)
     
   //selecting tree files
   vector<string> tree_files;
-  tree_files.push_back("Data/forest1/tree_20.txt");
-  tree_files.push_back("Data/forest2/tree_20.txt");
-  tree_files.push_back("Data/forest3/tree_20.txt");
-  tree_files.push_back("Data/forest4/tree_20.txt");    
+  tree_files.emplace_back("Data/forest1/tree_20.txt");
+  tree_files.emplace_back("Data/forest2/tree_20.txt");
+  tree_files.emplace_back("Data/forest3/tree_20.txt");
+  tree_files.emplace_back("Data/forest4/tree_20.txt");    
   
   pc::parse_argument (argc, argv, "-tree0", tree_files[0]);
   pc::parse_argument (argc, argv, "-tree1", tree_files[1]);

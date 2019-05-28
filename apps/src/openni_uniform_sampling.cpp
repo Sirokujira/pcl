@@ -42,6 +42,11 @@
 #include <pcl/console/parse.h>
 #include <pcl/common/time.h>
 
+#include <mutex>
+#include <thread>
+
+using namespace std::chrono_literals;
+
 #define FPS_CALC(_WHAT_) \
 do \
 { \
@@ -76,7 +81,7 @@ class OpenNIUniformSampling
     void 
     cloud_cb_ (const CloudConstPtr& cloud)
     {
-      boost::mutex::scoped_lock lock (mtx_);
+      std::lock_guard<std::mutex> lock (mtx_);
       FPS_CALC ("computation");
 
       cloud_.reset (new Cloud);
@@ -93,10 +98,10 @@ class OpenNIUniformSampling
     void
     viz_cb (pcl::visualization::PCLVisualizer& viz)
     {
-      boost::mutex::scoped_lock lock (mtx_);
+      std::lock_guard<std::mutex> lock (mtx_);
       if (!keypoints_ && !cloud_)
       {
-        boost::this_thread::sleep(boost::posix_time::seconds(1));
+        std::this_thread::sleep_for(1s);
         return;
       }
 
@@ -126,7 +131,7 @@ class OpenNIUniformSampling
       
       while (!viewer.wasStopped ())
       {
-        boost::this_thread::sleep(boost::posix_time::seconds(1));
+        std::this_thread::sleep_for(1s);
       }
 
       interface->stop ();
@@ -135,7 +140,7 @@ class OpenNIUniformSampling
     pcl::UniformSampling<pcl::PointXYZRGBA> pass_;
     pcl::visualization::CloudViewer viewer;
     std::string device_id_;
-    boost::mutex mtx_;
+    std::mutex mtx_;
     CloudPtr cloud_;
     pcl::PointCloud<pcl::PointXYZ>::Ptr keypoints_;
 };

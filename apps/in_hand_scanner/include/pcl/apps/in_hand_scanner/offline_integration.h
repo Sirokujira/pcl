@@ -38,11 +38,7 @@
  *
  */
 
-#ifndef PCL_APPS_IN_HAND_SCANNER_OFFLINE_INTEGRATION_H
-#define PCL_APPS_IN_HAND_SCANNER_OFFLINE_INTEGRATION_H
-
-#include <vector>
-#include <string>
+#pragma once
 
 #include <pcl/pcl_exports.h>
 #include <pcl/common/time.h>
@@ -50,6 +46,10 @@
 #include <pcl/apps/in_hand_scanner/boost.h>
 #include <pcl/apps/in_hand_scanner/eigen.h>
 #include <pcl/apps/in_hand_scanner/opengl_viewer.h>
+
+#include <mutex>
+#include <vector>
+#include <string>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward declarations
@@ -87,7 +87,7 @@ namespace pcl
         typedef pcl::ihs::OfflineIntegration Self;
 
         /** \brief Constructor. */
-        explicit OfflineIntegration (Base* parent=0);
+        explicit OfflineIntegration (Base* parent=nullptr);
 
         /** \brief Destructor. */
         ~OfflineIntegration ();
@@ -132,7 +132,7 @@ namespace pcl
         class ComputationFPS : public Base::FPS
         {
           public:
-            ComputationFPS () : Base::FPS () {}
+            ComputationFPS () {}
             ~ComputationFPS () {}
         };
 
@@ -141,7 +141,7 @@ namespace pcl
         class VisualizationFPS : public Base::FPS
         {
           public:
-            VisualizationFPS () : Base::FPS () {}
+            VisualizationFPS () {}
             ~VisualizationFPS () {}
         };
 
@@ -180,21 +180,21 @@ namespace pcl
           * \see http://doc.qt.digia.com/qt/opengl-overpainting.html
           */
         void
-        paintEvent (QPaintEvent* event);
+        paintEvent (QPaintEvent* event) override;
 
         /** \see http://doc.qt.digia.com/qt/qwidget.html#keyPressEvent */
         void
-        keyPressEvent (QKeyEvent* event);
+        keyPressEvent (QKeyEvent* event) override;
 
         //////////////////////////////////////////////////////////////////////////
         // Members
         //////////////////////////////////////////////////////////////////////////
 
         /** \brief Synchronization. */
-        boost::mutex mutex_;
+        std::mutex mutex_;
 
         /** \brief Wait until the data finished processing. */
-        boost::mutex mutex_quit_;
+        std::mutex mutex_quit_;
 
         /** \brief Please have a look at the documentation of ComputationFPS. */
         ComputationFPS computation_fps_;
@@ -223,5 +223,3 @@ namespace pcl
     };
   } // End namespace ihs
 } // End namespace pcl
-
-#endif // PCL_APPS_IN_HAND_SCANNER_OFFLINE_INTEGRATION_H

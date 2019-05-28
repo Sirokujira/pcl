@@ -43,6 +43,11 @@
 #include <pcl/common/time.h>
 #include <pcl/visualization/cloud_viewer.h>
 
+#include <mutex>
+#include <thread>
+
+using namespace std::chrono_literals;
+
 #define FPS_CALC(_WHAT_) \
 do \
 { \
@@ -81,7 +86,7 @@ class OpenNIIntegralImageNormalEstimation
     void
     cloud_cb (const CloudConstPtr& cloud)
     {
-      boost::mutex::scoped_lock lock (mtx_);
+      std::lock_guard<std::mutex> lock (mtx_);
       //lock while we set our cloud;
       //FPS_CALC ("computation");
       // Estimate surface normals
@@ -104,7 +109,6 @@ class OpenNIIntegralImageNormalEstimation
       mtx_.lock ();
       if (!cloud_ || !normals_)
       {
-        //boost::this_thread::sleep(boost::posix_time::seconds(1));
         mtx_.unlock ();
         return;
       }
@@ -132,7 +136,7 @@ class OpenNIIntegralImageNormalEstimation
     void
     keyboard_callback (const pcl::visualization::KeyboardEvent& event, void*)
     {
-      boost::mutex::scoped_lock lock (mtx_);
+      std::lock_guard<std::mutex> lock (mtx_);
       switch (event.getKeyCode ())
       {
         case '1':
@@ -168,7 +172,7 @@ class OpenNIIntegralImageNormalEstimation
 
       while (!viewer.wasStopped ())
       {
-        boost::this_thread::sleep(boost::posix_time::seconds(1));
+        std::this_thread::sleep_for(1s);
       }
 
       interface->stop ();
@@ -177,7 +181,7 @@ class OpenNIIntegralImageNormalEstimation
     pcl::IntegralImageNormalEstimation<PointType, pcl::Normal> ne_;
     pcl::visualization::CloudViewer viewer;
     std::string device_id_;
-    boost::mutex mtx_;
+    std::mutex mtx_;
     // Data
     pcl::PointCloud<pcl::Normal>::Ptr normals_;
     CloudConstPtr cloud_;

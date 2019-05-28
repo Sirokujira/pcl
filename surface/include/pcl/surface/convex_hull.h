@@ -37,11 +37,10 @@
  *
  */
 
-#include <pcl/pcl_config.h>
-#ifdef HAVE_QHULL
+#pragma once
 
-#ifndef PCL_CONVEX_HULL_2D_H_
-#define PCL_CONVEX_HULL_2D_H_
+#include <pcl/pcl_config.h>
+#ifdef HAVE_QHULL 
 
 // PCL includes
 #include <pcl/surface/reconstruction.h>
@@ -58,8 +57,8 @@ namespace pcl
   inline bool
   comparePoints2D (const std::pair<int, Eigen::Vector4f> & p1, const std::pair<int, Eigen::Vector4f> & p2)
   {
-    double angle1 = atan2 (p1.second[1], p1.second[0]) + M_PI;
-    double angle2 = atan2 (p2.second[1], p2.second[0]) + M_PI;
+    double angle1 = std::atan2 (p1.second[1], p1.second[0]) + M_PI;
+    double angle2 = std::atan2 (p2.second[1], p2.second[0]) + M_PI;
     return (angle1 > angle2);
   }
 
@@ -95,7 +94,7 @@ namespace pcl
       };
       
       /** \brief Empty destructor */
-      virtual ~ConvexHull () {}
+      ~ConvexHull () {}
 
       /** \brief Compute a convex hull for all points given.
         *
@@ -215,15 +214,15 @@ namespace pcl
         *
         * \param[out] output a PolygonMesh representing the convex hull of the input data.
         */
-      virtual void
-      performReconstruction (PolygonMesh &output);
+      void
+      performReconstruction (PolygonMesh &output) override;
       
       /** \brief A reconstruction method that returns the polygon of the convex hull.
         *
         * \param[out] polygons the polygon(s) representing the convex hull of the input data.
         */
-      virtual void
-      performReconstruction (std::vector<pcl::Vertices> &polygons);
+      void
+      performReconstruction (std::vector<pcl::Vertices> &polygons) override;
 
       /** \brief Automatically determines the dimension of input data - 2D or 3D. */
       void 
@@ -231,7 +230,7 @@ namespace pcl
 
       /** \brief Class get name method. */
       std::string
-      getClassName () const
+      getClassName () const override
       {
         return ("ConvexHull");
       }
@@ -275,5 +274,4 @@ namespace pcl
 #include <pcl/surface/impl/convex_hull.hpp>
 #endif
 
-#endif  //#ifndef PCL_CONVEX_HULL_2D_H_
 #endif

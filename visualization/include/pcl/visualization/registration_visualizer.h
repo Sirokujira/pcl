@@ -35,12 +35,14 @@
  *
  */
 
-#ifndef PCL_REGISTRATION_VISUALIZER_H_
-#define PCL_REGISTRATION_VISUALIZER_H_
+#pragma once
 
 // PCL
 #include <pcl/registration/registration.h>
 #include <pcl/visualization/pcl_visualizer.h>
+
+#include <mutex>
+#include <thread>
 
 namespace pcl
 {
@@ -58,17 +60,11 @@ namespace pcl
     public:
       /** \brief Empty constructor. */
       RegistrationVisualizer () : 
-        viewer_ (),
-        viewer_thread_ (),
-        registration_method_name_ (),
         update_visualizer_ (),
         first_update_flag_ (),
         cloud_source_ (),
         cloud_target_ (),
-        visualizer_updating_mutex_ (),
         cloud_intermediate_ (),
-        cloud_intermediate_indices_ (),
-        cloud_target_indices_ (),
         maximum_displayed_correspondences_ (0)
       {}
 
@@ -165,10 +161,10 @@ namespace pcl
       }
 
       /** \brief The registration viewer. */
-      boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer_;
+      pcl::visualization::PCLVisualizer::Ptr viewer_;
 
       /** \brief The thread running the runDisplay() function. */
-      boost::thread viewer_thread_;
+      std::thread viewer_thread_;
 
       /** \brief The name of the registration method whose intermediate results are rendered. */
       std::string registration_method_name_;
@@ -188,7 +184,7 @@ namespace pcl
       pcl::PointCloud<PointTarget> cloud_target_;
 
       /** \brief The mutex used for the synchronization of updating and rendering of the local buffers. */
-      boost::mutex visualizer_updating_mutex_;
+      std::mutex visualizer_updating_mutex_;
 
       /** \brief The local buffer for intermediate point cloud obtained during registration process. */
       pcl::PointCloud<PointSource> cloud_intermediate_;
@@ -206,5 +202,3 @@ namespace pcl
 }
 
 #include <pcl/visualization/impl/registration_visualizer.hpp>
-
-#endif  //#ifndef PCL_REGISTRATION_VISUALIZER_H_

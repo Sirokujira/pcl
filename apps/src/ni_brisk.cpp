@@ -38,6 +38,7 @@
  */
 
 #define SHOW_FPS 1
+
 #include <pcl/apps/timer.h>
 #include <pcl/common/common.h>
 #include <pcl/common/angles.h>
@@ -51,8 +52,12 @@
 #include <pcl/console/print.h>
 #include <pcl/console/parse.h>
 
+#include <mutex>
+#include <thread>
+
 using namespace pcl;
 using namespace std;
+using namespace std::chrono_literals;
 
 typedef PointXYZRGBA PointT;
 typedef PointWithScale KeyPointT;
@@ -77,7 +82,7 @@ class BRISKDemo
     cloud_callback (const CloudConstPtr& cloud)
     {
       FPS_CALC ("cloud callback");
-      boost::mutex::scoped_lock lock (cloud_mutex_);
+      std::lock_guard<std::mutex> lock (cloud_mutex_);
       cloud_ = cloud;
 
       // Compute BRISK keypoints 
@@ -230,7 +235,7 @@ class BRISKDemo
           {
             cloud_viewer_.setPosition (0, 0);
             cloud_viewer_.setSize (cloud->width, cloud->height);
-            cloud_init = !cloud_init;
+            cloud_init = true;
           }
 
           if (!cloud_viewer_.updatePointCloud (cloud, "OpenNICloud"))
@@ -243,7 +248,7 @@ class BRISKDemo
           {
             image_viewer_.setPosition (cloud->width, 0);
             image_viewer_.setSize (cloud->width, cloud->height);
-            image_init = !image_init;
+            image_init = true;
           }
 
           image_viewer_.showRGBImage<PointT> (cloud);
@@ -268,7 +273,7 @@ class BRISKDemo
 
         cloud_viewer_.spinOnce ();
         image_viewer_.spinOnce ();
-        boost::this_thread::sleep (boost::posix_time::microseconds (100));
+        std::this_thread::sleep_for(100us);
       }
 
       grabber_.stop ();
@@ -278,7 +283,7 @@ class BRISKDemo
     
     visualization::PCLVisualizer cloud_viewer_;
     Grabber& grabber_;
-    boost::mutex cloud_mutex_;
+    std::mutex cloud_mutex_;
     CloudConstPtr cloud_;
     
     visualization::ImageViewer image_viewer_;

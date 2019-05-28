@@ -35,11 +35,6 @@
  *
  */
 
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-
-#include <boost/shared_ptr.hpp>
-
 #include <pcl/cuda/features/normal_3d.h>
 #include <pcl/cuda/time_cpu.h>
 #include <pcl/cuda/time_gpu.h>
@@ -49,16 +44,20 @@
 #include <pcl/cuda/io/host_device.h>
 #include <pcl/cuda/segmentation/connected_components.h>
 #include <pcl/cuda/segmentation/mssegmentation.h>
-
 #include <pcl/io/openni_grabber.h>
 #include <pcl/io/pcd_grabber.h>
 #include <pcl/visualization/cloud_viewer.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
 #include <opencv2/highgui/highgui.hpp>
-#include "opencv2/gpu/gpu.hpp"
+#include <opencv2/gpu/gpu.hpp>
+
+#include <boost/shared_ptr.hpp>
 
 #include <iostream>
 #include <fstream>
+#include <mutex>
 
 using namespace pcl::cuda;
 
@@ -97,13 +96,13 @@ class Segmentation
 
     void viz_cb (pcl::visualization::PCLVisualizer& viz)
     {
-      static bool first_time = true;
-      boost::mutex::scoped_lock l(m_mutex);
+      std::lock_guard<std::mutex> l(m_mutex);
       if (new_cloud)
       {
         //typedef pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGBNormal> ColorHandler;
         typedef pcl::visualization::PointCloudColorHandlerGenericField <pcl::PointXYZRGBNormal> ColorHandler;
         ColorHandler Color_handler (normal_cloud,"curvature");
+        static bool first_time = true;
         if (!first_time)
         {
           viz.removePointCloud ("normalcloud");
@@ -141,15 +140,15 @@ class Segmentation
 
       // we got a cloud in device..
 
-      boost::shared_ptr<typename Storage<float4>::type> normals;
-      float focallength = 580/2.0;
+      boost::shared_ptr<typename Storage<float4>::type> normals;      
       {
         ScopeTimeCPU time ("TIMING: Normal Estimation");
+        constexpr float focallength = 580/2.0;
         normals = computePointNormals<Storage, typename PointIterator<Storage,PointXYZRGB>::type > (data->points.begin (), data->points.end (), focallength, data, 0.05, 30);
       }
       go_on = false;
 
-      boost::mutex::scoped_lock l(m_mutex);
+      std::lock_guard<std::mutex> l(m_mutex);
       normal_cloud.reset (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
       toPCL (*data, *normals, *normal_cloud);
       new_cloud = true;
@@ -220,7 +219,7 @@ class Segmentation
       cv::imshow ("NormalImage", seg);
       cv::waitKey (2);
 
-      boost::mutex::scoped_lock l(m_mutex);
+      std::lock_guard<std::mutex> l(m_mutex);
       normal_cloud.reset (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
       toPCL (*data, *normals, *normal_cloud);
       new_cloud = true;
@@ -294,7 +293,7 @@ class Segmentation
     pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr normal_cloud;
     DisparityToCloud d2c;
     pcl::visualization::CloudViewer viewer;
-    boost::mutex m_mutex;
+    std::mutex m_mutex;
     bool new_cloud, go_on;
 };
 

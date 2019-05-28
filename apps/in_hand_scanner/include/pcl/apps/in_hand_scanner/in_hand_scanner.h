@@ -38,17 +38,17 @@
  *
  */
 
-#ifndef PCL_APPS_IN_HAND_SCANNER_IN_HAND_SCANNER_H
-#define PCL_APPS_IN_HAND_SCANNER_IN_HAND_SCANNER_H
-
-#include <string>
-#include <sstream>
-#include <iomanip>
+#pragma once
 
 #include <pcl/pcl_exports.h>
 #include <pcl/apps/in_hand_scanner/boost.h>
 #include <pcl/apps/in_hand_scanner/common_types.h>
 #include <pcl/apps/in_hand_scanner/opengl_viewer.h>
+
+#include <mutex>
+#include <string>
+#include <sstream>
+#include <iomanip>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward declarations
@@ -121,7 +121,7 @@ namespace pcl
         } FileType;
 
         /** \brief Constructor. */
-        explicit InHandScanner (Base* parent=0);
+        explicit InHandScanner (Base* parent=nullptr);
 
         /** \brief Destructor. */
         ~InHandScanner ();
@@ -186,7 +186,7 @@ namespace pcl
 
         /** \see http://doc.qt.digia.com/qt/qwidget.html#keyPressEvent */
         void
-        keyPressEvent (QKeyEvent* event);
+        keyPressEvent (QKeyEvent* event) override;
 
       private:
 
@@ -217,7 +217,7 @@ namespace pcl
         class ComputationFPS : public Base::FPS
         {
           public:
-            ComputationFPS () : Base::FPS () {}
+            ComputationFPS () {}
             ~ComputationFPS () {}
         };
 
@@ -225,7 +225,7 @@ namespace pcl
         class VisualizationFPS : public Base::FPS
         {
           public:
-            VisualizationFPS () : Base::FPS () {}
+            VisualizationFPS () {}
             ~VisualizationFPS () {}
         };
 
@@ -237,7 +237,7 @@ namespace pcl
           * \see http://doc.qt.digia.com/qt/opengl-overpainting.html
           */
         void
-        paintEvent (QPaintEvent* event);
+        paintEvent (QPaintEvent* event) override;
 
         /** \brief Draw text over the opengl scene.
           * \see http://doc.qt.digia.com/qt/opengl-overpainting.html
@@ -254,7 +254,7 @@ namespace pcl
         ////////////////////////////////////////////////////////////////////////
 
         /** \brief Synchronization. */
-        boost::mutex mutex_;
+        std::mutex mutex_;
 
         /** \brief Please have a look at the documentation of ComputationFPS. */
         ComputationFPS computation_fps_;
@@ -307,5 +307,3 @@ namespace pcl
 
 // http://doc.qt.digia.com/qt/qmetatype.html#Q_DECLARE_METATYPE
 Q_DECLARE_METATYPE (pcl::ihs::InHandScanner::RunningMode)
-
-#endif // PCL_APPS_IN_HAND_SCANNER_IN_HAND_SCANNER_H
